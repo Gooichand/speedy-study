@@ -1,345 +1,249 @@
 
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle, X, RefreshCw, Target, BookOpen } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { CheckCircle, XCircle, RotateCcw, Brain } from 'lucide-react';
 
 const QuizInterface = () => {
   const { id } = useParams();
-  const { toast } = useToast();
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<(string | string[])[]>([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<string>('');
+  const [answers, setAnswers] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [score, setScore] = useState(0);
 
-  const questions = [
-    {
-      type: 'mcq',
-      question: 'What is the primary difference between supervised and unsupervised learning?',
-      options: [
-        'Supervised learning uses labeled data, unsupervised learning uses unlabeled data',
-        'Supervised learning is faster than unsupervised learning',
-        'Supervised learning uses more data than unsupervised learning',
-        'There is no difference between them'
-      ],
-      correctAnswer: 0,
-      explanation: 'Supervised learning algorithms learn from labeled training data, where the correct output is known. Unsupervised learning finds patterns in data without labeled examples.',
-      difficulty: 'Intermediate',
-      pageReference: '6-8'
-    },
-    {
-      type: 'fill',
-      question: 'Neural networks use a process called _______ to adjust weights and minimize error.',
-      correctAnswer: 'backpropagation',
-      explanation: 'Backpropagation is the algorithm used to train neural networks by propagating the error backward through the network and adjusting weights accordingly.',
-      difficulty: 'Advanced',
-      pageReference: '28-30'
-    },
-    {
-      type: 'short',
-      question: 'Explain the concept of overfitting in machine learning and how it can be prevented.',
-      sampleAnswer: 'Overfitting occurs when a model learns the training data too well, including noise and irrelevant patterns, resulting in poor performance on new data. It can be prevented through techniques like cross-validation, regularization, early stopping, and using more training data.',
-      difficulty: 'Advanced',
-      pageReference: '38-40'
-    },
-    {
-      type: 'match',
-      question: 'Match the algorithm with its primary use case:',
-      leftColumn: ['Linear Regression', 'K-Means', 'Decision Tree', 'SVM'],
-      rightColumn: ['Classification with clear boundaries', 'Clustering data', 'Predicting continuous values', 'Rule-based decisions'],
-      correctMatches: [2, 1, 3, 0],
-      explanation: 'Each algorithm has specific strengths: Linear Regression for continuous predictions, K-Means for clustering, Decision Trees for interpretable rules, and SVM for complex classification boundaries.',
-      difficulty: 'Intermediate',
-      pageReference: '10-20'
-    }
-  ];
-
-  const handleAnswerSelect = (answer: string | string[]) => {
-    const newAnswers = [...selectedAnswers];
-    newAnswers[currentQuestion] = answer;
-    setSelectedAnswers(newAnswers);
+  // Mock quiz data - replace with real data from backend
+  const quizData = {
+    title: "Understanding AI and Machine Learning Concepts",
+    questions: [
+      {
+        id: 1,
+        type: "mcq",
+        question: "What is the primary difference between supervised and unsupervised learning?",
+        options: [
+          "Supervised learning uses labeled data, unsupervised learning doesn't",
+          "Supervised learning is faster than unsupervised learning",
+          "Supervised learning only works with text data",
+          "There is no difference between them"
+        ],
+        correctAnswer: "Supervised learning uses labeled data, unsupervised learning doesn't",
+        explanation: "Supervised learning algorithms learn from labeled training data to make predictions, while unsupervised learning finds patterns in data without labeled examples."
+      },
+      {
+        id: 2,
+        type: "fill",
+        question: "Neural networks are inspired by the structure of the human ____.",
+        correctAnswer: "brain",
+        explanation: "Neural networks are computational models inspired by the way biological neural networks in the human brain process information."
+      },
+      {
+        id: 3,
+        type: "short",
+        question: "Explain what overfitting means in machine learning.",
+        correctAnswer: "When a model learns training data too well and fails to generalize",
+        explanation: "Overfitting occurs when a model memorizes the training data instead of learning generalizable patterns, leading to poor performance on new, unseen data."
+      }
+    ]
   };
 
-  const handleNextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
+  const currentQ = quizData.questions[currentQuestion];
+  const progress = ((currentQuestion + 1) / quizData.questions.length) * 100;
+
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer);
+  };
+
+  const handleNext = () => {
+    const newAnswers = [...answers];
+    newAnswers[currentQuestion] = selectedAnswer;
+    setAnswers(newAnswers);
+
+    if (currentQuestion < quizData.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer(answers[currentQuestion + 1] || '');
     } else {
-      setQuizCompleted(true);
+      calculateScore(newAnswers);
       setShowResults(true);
     }
   };
 
-  const handlePreviousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-    }
-  };
-
-  const calculateScore = () => {
+  const calculateScore = (userAnswers: string[]) => {
     let correct = 0;
-    questions.forEach((question, index) => {
-      const userAnswer = selectedAnswers[index];
-      if (question.type === 'mcq' && userAnswer === question.correctAnswer) {
-        correct++;
-      } else if (question.type === 'fill' && 
-                 typeof userAnswer === 'string' && 
-                 userAnswer.toLowerCase().includes(question.correctAnswer.toLowerCase())) {
-        correct++;
-      }
-      // For short answer and match questions, we'll assume they're correct for demo purposes
-      else if (question.type === 'short' && userAnswer) {
-        correct++;
-      } else if (question.type === 'match' && userAnswer) {
-        correct++;
+    quizData.questions.forEach((q, index) => {
+      const userAnswer = userAnswers[index];
+      if (typeof userAnswer === 'string' && typeof q.correctAnswer === 'string') {
+        if (userAnswer.toLowerCase().trim() === q.correctAnswer.toLowerCase().trim()) {
+          correct++;
+        }
       }
     });
-    return (correct / questions.length) * 100;
+    setScore(correct);
   };
 
   const resetQuiz = () => {
     setCurrentQuestion(0);
-    setSelectedAnswers([]);
+    setSelectedAnswer('');
+    setAnswers([]);
     setShowResults(false);
-    setQuizCompleted(false);
-    toast({
-      title: "Quiz Reset",
-      description: "New questions have been generated for your retry!"
-    });
+    setScore(0);
   };
 
-  const renderQuestion = () => {
-    const question = questions[currentQuestion];
-    const userAnswer = selectedAnswers[currentQuestion];
-
-    switch (question.type) {
-      case 'mcq':
-        return (
-          <div className="space-y-4">
-            {question.options?.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleAnswerSelect(index)}
-                className={`w-full p-4 text-left rounded-xl border-2 transition-all ${
-                  userAnswer === index
-                    ? 'border-dgc-purple bg-purple-50'
-                    : 'border-gray-200 hover:border-dgc-purple/50'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    userAnswer === index ? 'border-dgc-purple bg-dgc-purple' : 'border-gray-300'
-                  }`}>
-                    {userAnswer === index && <div className="w-3 h-3 bg-white rounded-full"></div>}
-                  </div>
-                  <span className="text-gray-700">{option}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        );
-
-      case 'fill':
-        return (
-          <div className="space-y-4">
-            <div className="p-6 bg-gray-50 rounded-xl">
-              <p className="text-lg text-gray-700 leading-relaxed">
-                {question.question}
-              </p>
-            </div>
-            <input
-              type="text"
-              placeholder="Enter your answer..."
-              value={typeof userAnswer === 'string' ? userAnswer : ''}
-              onChange={(e) => handleAnswerSelect(e.target.value)}
-              className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-dgc-purple focus:outline-none"
-            />
-          </div>
-        );
-
-      case 'short':
-        return (
-          <div className="space-y-4">
-            <div className="p-6 bg-gray-50 rounded-xl">
-              <p className="text-lg text-gray-700 leading-relaxed">
-                {question.question}
-              </p>
-            </div>
-            <textarea
-              placeholder="Enter your detailed answer..."
-              value={typeof userAnswer === 'string' ? userAnswer : ''}
-              onChange={(e) => handleAnswerSelect(e.target.value)}
-              rows={6}
-              className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-dgc-purple focus:outline-none resize-none"
-            />
-          </div>
-        );
-
-      case 'match':
-        return (
-          <div className="space-y-6">
-            <div className="p-6 bg-gray-50 rounded-xl">
-              <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                {question.question}
-              </p>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800">Items</h4>
-                {question.leftColumn?.map((item, index) => (
-                  <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <span className="font-medium text-blue-800">{index + 1}. {item}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800">Match with</h4>
-                {question.rightColumn?.map((item, index) => (
-                  <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
-                    <span className="font-medium text-green-800">{String.fromCharCode(65 + index)}. {item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="p-4 bg-white rounded-xl border-2 border-gray-200">
-              <p className="text-sm text-gray-600 mb-2">Enter your matches (e.g., 1A, 2B, 3C, 4D):</p>
-              <input
-                type="text"
-                placeholder="1A, 2B, 3C, 4D"
-                value={typeof userAnswer === 'string' ? userAnswer : ''}
-                onChange={(e) => handleAnswerSelect(e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:border-dgc-purple focus:outline-none"
-              />
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  const getScoreColor = () => {
+    const percentage = (score / quizData.questions.length) * 100;
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 60) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   if (showResults) {
-    const score = calculateScore();
     return (
-      <div className="pt-28 pb-20 px-6 min-h-screen">
+      <div className="min-h-screen pt-24 pb-12 px-6">
         <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-8">
-            <div className="w-24 h-24 bg-green-gradient rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow-pink">
-              <CheckCircle size={48} className="text-white" />
-            </div>
-            <h1 className="text-5xl font-bold text-gradient font-space mb-4">Quiz Complete!</h1>
-            <p className="text-2xl text-gray-600">Your Score: {score.toFixed(0)}%</p>
-          </div>
+          <Card className="glass-card border-2 border-purple-200">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl font-bold text-gradient mb-4">
+                Quiz Complete! 🎉
+              </CardTitle>
+              <div className={`text-6xl font-bold ${getScoreColor()}`}>
+                {score}/{quizData.questions.length}
+              </div>
+              <p className="text-xl text-gray-600 mt-2">
+                You scored {Math.round((score / quizData.questions.length) * 100)}%
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {quizData.questions.map((question, index) => {
+                const userAnswer = answers[index];
+                const isCorrect = typeof userAnswer === 'string' && typeof question.correctAnswer === 'string' 
+                  ? userAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim()
+                  : false;
 
-          <Card className="glass-card p-8 mb-8">
-            <h2 className="text-3xl font-bold mb-6 text-gray-800">Detailed Results</h2>
-            <div className="space-y-6">
-              {questions.map((question, index) => (
-                <div key={index} className="p-6 bg-white/50 rounded-xl">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <Badge variant="outline">{question.type.toUpperCase()}</Badge>
-                        <Badge variant="outline">{question.difficulty}</Badge>
-                        <Badge variant="outline">Pages {question.pageReference}</Badge>
+                return (
+                  <div key={question.id} className="border rounded-lg p-4 bg-white/50">
+                    <div className="flex items-start space-x-3">
+                      {isCorrect ? (
+                        <CheckCircle className="text-green-600 mt-1" size={20} />
+                      ) : (
+                        <XCircle className="text-red-600 mt-1" size={20} />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-2">Question {index + 1}</h3>
+                        <p className="text-gray-700 mb-2">{question.question}</p>
+                        <div className="space-y-1">
+                          <p><strong>Your answer:</strong> {userAnswer || 'Not answered'}</p>
+                          <p><strong>Correct answer:</strong> {question.correctAnswer}</p>
+                          <p className="text-sm text-gray-600 mt-2">{question.explanation}</p>
+                        </div>
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800">{question.question}</h3>
                     </div>
-                    <CheckCircle className="text-green-500" size={24} />
                   </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-blue-800 mb-2">Explanation:</p>
-                    <p className="text-blue-700">{question.explanation}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                );
+              })}
+              
+              <div className="flex justify-center space-x-4 pt-6">
+                <Button onClick={resetQuiz} className="btn-3d bg-purple-gradient">
+                  <RotateCcw size={20} className="mr-2" />
+                  Retake Quiz
+                </Button>
+              </div>
+            </CardContent>
           </Card>
-
-          <div className="flex justify-center space-x-4">
-            <Button onClick={resetQuiz} className="btn-3d bg-purple-gradient hover:opacity-90 text-white px-8 py-3">
-              <RefreshCw size={20} className="mr-2" />
-              Retake Quiz
-            </Button>
-            <Link to={`/document/${id}`}>
-              <Button variant="outline" className="btn-3d px-8 py-3">
-                <BookOpen size={20} className="mr-2" />
-                Study Document
-              </Button>
-            </Link>
-            <Link to="/dashboard">
-              <Button variant="outline" className="btn-3d px-8 py-3">
-                <ArrowLeft size={20} className="mr-2" />
-                Dashboard
-              </Button>
-            </Link>
-          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="pt-28 pb-20 px-6 min-h-screen">
+    <div className="min-h-screen pt-24 pb-12 px-6">
       <div className="container mx-auto max-w-4xl">
-        <div className="flex items-center justify-between mb-8">
-          <Link to={`/document/${id}`}>
-            <Button variant="outline" className="btn-3d">
-              <ArrowLeft size={20} className="mr-2" />
-              Back to Document
-            </Button>
-          </Link>
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gradient font-space">Interactive Quiz</h1>
-            <p className="text-gray-600">Question {currentQuestion + 1} of {questions.length}</p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gradient mb-4">{quizData.title}</h1>
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-gray-600">
+              Question {currentQuestion + 1} of {quizData.questions.length}
+            </span>
+            <span className="text-sm text-gray-500">
+              Progress: {Math.round(progress)}%
+            </span>
           </div>
-          <div className="w-32">
-            <Progress value={(currentQuestion / questions.length) * 100} />
-          </div>
+          <Progress value={progress} className="h-2" />
         </div>
 
-        <Card className="glass-card p-8 mb-8">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-pink-gradient rounded-xl flex items-center justify-center">
-              <Target size={24} className="text-white" />
+        <Card className="glass-card border-2 border-purple-200">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Brain className="text-purple-600" size={24} />
+              <span>Question {currentQuestion + 1}</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="text-lg font-medium text-gray-800">
+              {currentQ.question}
             </div>
-            <div>
-              <div className="flex items-center space-x-3">
-                <Badge variant="outline">{questions[currentQuestion].type.toUpperCase()}</Badge>
-                <Badge variant="outline">{questions[currentQuestion].difficulty}</Badge>
-                <Badge variant="outline">Pages {questions[currentQuestion].pageReference}</Badge>
+
+            {currentQ.type === 'mcq' && currentQ.options && (
+              <div className="space-y-3">
+                {currentQ.options.map((option, index) => (
+                  <label
+                    key={index}
+                    className={`block p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                      selectedAnswer === option
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 hover:border-purple-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="answer"
+                      value={option}
+                      checked={selectedAnswer === option}
+                      onChange={(e) => handleAnswerSelect(e.target.value)}
+                      className="sr-only"
+                    />
+                    <span className="text-gray-700">{option}</span>
+                  </label>
+                ))}
               </div>
+            )}
+
+            {(currentQ.type === 'fill' || currentQ.type === 'short') && (
+              <div>
+                <input
+                  type="text"
+                  value={selectedAnswer}
+                  onChange={(e) => handleAnswerSelect(e.target.value)}
+                  placeholder="Type your answer here..."
+                  className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+            )}
+
+            <div className="flex justify-between pt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (currentQuestion > 0) {
+                    setCurrentQuestion(currentQuestion - 1);
+                    setSelectedAnswer(answers[currentQuestion - 1] || '');
+                  }
+                }}
+                disabled={currentQuestion === 0}
+              >
+                Previous
+              </Button>
+              
+              <Button
+                onClick={handleNext}
+                disabled={!selectedAnswer.trim()}
+                className="btn-3d bg-purple-gradient"
+              >
+                {currentQuestion === quizData.questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+              </Button>
             </div>
-          </div>
-
-          <h2 className="text-2xl font-bold mb-8 text-gray-800">
-            {questions[currentQuestion].question}
-          </h2>
-
-          {renderQuestion()}
+          </CardContent>
         </Card>
-
-        <div className="flex justify-between">
-          <Button
-            onClick={handlePreviousQuestion}
-            disabled={currentQuestion === 0}
-            variant="outline"
-            className="btn-3d disabled:opacity-50"
-          >
-            Previous
-          </Button>
-          <Button
-            onClick={handleNextQuestion}
-            disabled={!selectedAnswers[currentQuestion]}
-            className="btn-3d bg-purple-gradient hover:opacity-90 text-white disabled:opacity-50"
-          >
-            {currentQuestion === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
-          </Button>
-        </div>
       </div>
     </div>
   );
