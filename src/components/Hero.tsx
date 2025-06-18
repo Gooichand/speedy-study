@@ -10,48 +10,68 @@ const Hero = () => {
 
   return (
     <section className="pt-32 pb-20 px-6 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50"></div>
-      <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-      <div className="absolute top-40 right-10 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 floating-element"></div>
+        <div className="absolute top-40 right-10 w-96 h-96 bg-pink-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 floating-element" style={{animationDelay: '2s'}}></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 floating-element" style={{animationDelay: '4s'}}></div>
+      </div>
+
+      {/* Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              left: Math.random() * 100 + '%',
+              top: Math.random() * 100 + '%',
+              animationDelay: Math.random() * 8 + 's'
+            }}
+          />
+        ))}
+      </div>
 
       <div className="container mx-auto text-center relative z-10">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-center mb-8">
-            <div className="relative">
-              <div className="w-32 h-32 bg-purple-gradient rounded-3xl flex items-center justify-center shadow-glow-purple animate-glow">
+            <div className="relative perspective-1000">
+              <div className="w-32 h-32 bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 rounded-3xl flex items-center justify-center neon-glow floating-element transform-3d">
                 <Brain size={64} className="text-white" />
               </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-pink-gradient rounded-full flex items-center justify-center animate-bounce">
-                <Sparkles size={16} className="text-white" />
+              <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center floating-element" style={{animationDelay: '1s'}}>
+                <Sparkles size={20} className="text-white" />
               </div>
+              <div className="absolute -bottom-2 -left-2 w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full floating-element" style={{animationDelay: '2s'}}></div>
             </div>
           </div>
 
           <h1 className="text-7xl font-bold mb-6 text-gradient font-space leading-tight">
             Transform Documents Into
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 animate-gradient">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">
               Interactive Learning
             </span>
           </h1>
 
-          <p className="text-2xl text-gray-600 mb-12 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-2xl text-slate-300 mb-12 leading-relaxed max-w-3xl mx-auto">
             Upload any document and let our AI create personalized quizzes, summaries, and interactive learning experiences. 
-            <span className="text-purple-600 font-semibold"> Master any subject faster than ever.</span>
+            <span className="text-purple-400 font-semibold"> Master any subject faster than ever.</span>
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             {user ? (
               <>
                 <Link to="/upload">
-                  <Button className="btn-3d bg-purple-gradient hover:opacity-90 text-white px-8 py-4 text-lg rounded-2xl shadow-glow-purple transform hover:scale-105 transition-all duration-200">
+                  <Button className="btn-3d text-white px-8 py-4 text-lg rounded-2xl hover-lift">
                     <Upload size={24} className="mr-3" />
                     Upload Your First Document
                   </Button>
                 </Link>
                 <Link to="/dashboard">
-                  <Button variant="outline" className="btn-3d border-2 border-purple-200 hover:bg-purple-50 px-8 py-4 text-lg rounded-2xl">
+                  <Button 
+                    variant="outline" 
+                    className="border-2 border-purple-400/50 hover:border-purple-400 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 hover:text-white px-8 py-4 text-lg rounded-2xl hover-lift"
+                  >
                     <Target size={24} className="mr-3" />
                     Go to Dashboard
                   </Button>
@@ -60,13 +80,16 @@ const Hero = () => {
             ) : (
               <>
                 <Link to="/auth">
-                  <Button className="btn-3d bg-purple-gradient hover:opacity-90 text-white px-8 py-4 text-lg rounded-2xl shadow-glow-purple transform hover:scale-105 transition-all duration-200">
+                  <Button className="btn-3d text-white px-8 py-4 text-lg rounded-2xl hover-lift">
                     <Brain size={24} className="mr-3" />
                     Get Started Free
                   </Button>
                 </Link>
                 <Link to="/auth">
-                  <Button variant="outline" className="btn-3d border-2 border-purple-200 hover:bg-purple-50 px-8 py-4 text-lg rounded-2xl">
+                  <Button 
+                    variant="outline" 
+                    className="border-2 border-purple-400/50 hover:border-purple-400 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 hover:text-white px-8 py-4 text-lg rounded-2xl hover-lift"
+                  >
                     <Target size={24} className="mr-3" />
                     Try Demo
                   </Button>
@@ -75,19 +98,22 @@ const Hero = () => {
             )}
           </div>
 
-          {/* Stats Section */}
+          {/* Enhanced Stats Section */}
           <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
-            <div className="glass-card p-6 rounded-2xl hover-lift">
-              <div className="text-4xl font-bold text-purple-600 mb-2">10x</div>
-              <div className="text-gray-600">Faster Learning</div>
+            <div className="glass-card-dark p-8 rounded-2xl hover-lift transform-3d rotate-y-12 border border-purple-500/20">
+              <div className="text-5xl font-bold text-gradient mb-4">10x</div>
+              <div className="text-slate-300 text-lg">Faster Learning</div>
+              <div className="w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mt-4"></div>
             </div>
-            <div className="glass-card p-6 rounded-2xl hover-lift">
-              <div className="text-4xl font-bold text-pink-600 mb-2">95%</div>
-              <div className="text-gray-600">Accuracy Rate</div>
+            <div className="glass-card-dark p-8 rounded-2xl hover-lift transform-3d border border-pink-500/20" style={{animationDelay: '0.2s'}}>
+              <div className="text-5xl font-bold text-gradient mb-4">95%</div>
+              <div className="text-slate-300 text-lg">Accuracy Rate</div>
+              <div className="w-full h-1 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full mt-4"></div>
             </div>
-            <div className="glass-card p-6 rounded-2xl hover-lift">
-              <div className="text-4xl font-bold text-blue-600 mb-2">50+</div>
-              <div className="text-gray-600">File Formats</div>
+            <div className="glass-card-dark p-8 rounded-2xl hover-lift transform-3d rotate-y-12 border border-blue-500/20" style={{animationDelay: '0.4s'}}>
+              <div className="text-5xl font-bold text-gradient mb-4">50+</div>
+              <div className="text-slate-300 text-lg">File Formats</div>
+              <div className="w-full h-1 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mt-4"></div>
             </div>
           </div>
         </div>
