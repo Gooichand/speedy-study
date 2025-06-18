@@ -8,23 +8,46 @@ import Dashboard from '../components/Dashboard';
 import FileUpload from '../components/FileUpload';
 import DocumentViewer from '../components/DocumentViewer';
 import QuizInterface from '../components/QuizInterface';
+import Auth from './Auth';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 const Index = () => {
   return (
     <Router>
       <div className="min-h-screen">
-        <Header />
         <Routes>
+          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={
             <>
+              <Header />
               <Hero />
               <Features />
             </>
           } />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/upload" element={<FileUpload />} />
-          <Route path="/document/:id" element={<DocumentViewer />} />
-          <Route path="/quiz/:id" element={<QuizInterface />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Header />
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/upload" element={
+            <ProtectedRoute>
+              <Header />
+              <FileUpload />
+            </ProtectedRoute>
+          } />
+          <Route path="/document/:id" element={
+            <ProtectedRoute>
+              <Header />
+              <DocumentViewer />
+            </ProtectedRoute>
+          } />
+          <Route path="/quiz/:id" element={
+            <ProtectedRoute>
+              <Header />
+              <QuizInterface />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
     </Router>

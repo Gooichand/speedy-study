@@ -9,7 +9,110 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          content: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string
+          id: string
+          processed: boolean | null
+          summary: string | null
+          title: string
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          processed?: boolean | null
+          summary?: string | null
+          title: string
+          upload_date?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          processed?: boolean | null
+          summary?: string | null
+          title?: string
+          upload_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quizzes: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          document_id: string
+          id: string
+          questions: Json
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          document_id: string
+          id?: string
+          questions: Json
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          document_id?: string
+          id?: string
+          questions?: Json
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
