@@ -115,8 +115,11 @@ const Auth = () => {
         ))}
       </div>
 
-      <Card className="w-full max-w-md glass-card-dark border-2 border-purple-500/30 relative z-10">
-        <CardHeader className="text-center">
+      <Card className="w-full max-w-md bg-slate-700/90 backdrop-blur-xl border-2 border-purple-400/50 relative z-10 shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg"></div>
+        <div className="absolute inset-[1px] bg-slate-700/95 backdrop-blur-xl rounded-lg"></div>
+        
+        <CardHeader className="text-center relative z-10">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center neon-glow floating-element">
               <Brain size={32} className="text-white" />
@@ -125,45 +128,45 @@ const Auth = () => {
           <CardTitle className="text-3xl font-bold text-gradient font-space">
             Welcome to Speedy Study
           </CardTitle>
-          <p className="text-slate-400 mt-2">DGC-AI Powered Learning Platform</p>
+          <p className="text-slate-300 mt-2">DGC-AI Powered Learning Platform</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative z-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-slate-300">Full Name</Label>
+                <Label htmlFor="fullName" className="text-slate-200">Full Name</Label>
                 <Input
                   id="fullName"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="bg-slate-800/50 border-slate-600 text-white placeholder-slate-400 focus:border-purple-400"
+                  className="bg-slate-600/50 border-slate-500 text-white placeholder-slate-300 focus:border-purple-400 focus:bg-slate-600/70"
                 />
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300">Email</Label>
+              <Label htmlFor="email" className="text-slate-200">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-slate-800/50 border-slate-600 text-white placeholder-slate-400 focus:border-purple-400"
+                className="bg-slate-600/50 border-slate-500 text-white placeholder-slate-300 focus:border-purple-400 focus:bg-slate-600/70"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300">Password</Label>
+              <Label htmlFor="password" className="text-slate-200">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-slate-800/50 border-slate-600 text-white placeholder-slate-400 focus:border-purple-400"
+                className="bg-slate-600/50 border-slate-500 text-white placeholder-slate-300 focus:border-purple-400 focus:bg-slate-600/70"
               />
             </div>
 
@@ -189,14 +192,14 @@ const Auth = () => {
           <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-purple-400 hover:text-purple-300 transition-colors"
+              className="text-purple-300 hover:text-purple-200 transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
           </div>
 
           <div className="mt-6">
-            <Link to="/" className="flex items-center justify-center space-x-2 text-slate-400 hover:text-purple-400 transition-colors">
+            <Link to="/" className="flex items-center justify-center space-x-2 text-slate-300 hover:text-purple-300 transition-colors">
               <ArrowLeft size={16} />
               <span>Back to Home</span>
             </Link>

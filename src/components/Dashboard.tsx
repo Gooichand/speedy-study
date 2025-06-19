@@ -45,20 +45,23 @@ const Dashboard = () => {
       <div className="container mx-auto">
         <div className="mb-12">
           <h1 className="text-5xl font-bold mb-4 text-gradient font-space">Learning Dashboard</h1>
-          <p className="text-xl text-gray-600">Track your progress and manage your documents</p>
+          <p className="text-xl text-slate-300">Track your progress and manage your documents</p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stats.map((stat, index) => (
-            <Card key={index} className="glass-card p-6 hover-lift">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
-                </div>
-                <div className={`w-12 h-12 ${stat.gradient} rounded-xl flex items-center justify-center`}>
-                  <stat.icon size={24} className="text-white" />
+            <Card key={index} className="bg-slate-700/80 backdrop-blur-xl border border-slate-600/50 p-6 hover-lift shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-slate-300 text-sm mb-1">{stat.label}</p>
+                    <p className="text-3xl font-bold text-white">{stat.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 ${stat.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
+                    <stat.icon size={24} className="text-white" />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -66,72 +69,78 @@ const Dashboard = () => {
         </div>
 
         {/* Upload Section */}
-        <Card className="glass-card p-8 mb-12 text-center">
-          <div className="max-w-2xl mx-auto">
-            <div className="w-20 h-20 bg-purple-gradient rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow-purple animate-glow">
-              <Upload size={40} className="text-white" />
+        <Card className="bg-slate-700/80 backdrop-blur-xl border border-slate-600/50 p-8 mb-12 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10"></div>
+          <div className="relative z-10">
+            <div className="max-w-2xl mx-auto">
+              <div className="w-20 h-20 bg-purple-gradient rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow-purple animate-glow">
+                <Upload size={40} className="text-white" />
+              </div>
+              <h2 className="text-3xl font-bold mb-4 text-white">Ready to Learn Something New?</h2>
+              <p className="text-slate-300 mb-6">
+                Upload any document and let our AI create a personalized learning experience for you
+              </p>
+              <Link to="/upload">
+                <Button className="btn-3d bg-purple-gradient hover:opacity-90 text-white px-8 py-3 text-lg rounded-xl shadow-glow-purple">
+                  <Upload size={20} className="mr-2" />
+                  Upload New Document
+                </Button>
+              </Link>
             </div>
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">Ready to Learn Something New?</h2>
-            <p className="text-gray-600 mb-6">
-              Upload any document and let our AI create a personalized learning experience for you
-            </p>
-            <Link to="/upload">
-              <Button className="btn-3d bg-purple-gradient hover:opacity-90 text-white px-8 py-3 text-lg rounded-xl shadow-glow-purple">
-                <Upload size={20} className="mr-2" />
-                Upload New Document
-              </Button>
-            </Link>
           </div>
         </Card>
 
         {/* Documents List */}
         <div className="space-y-6">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">Your Documents</h2>
+          <h2 className="text-3xl font-bold text-white mb-6">Your Documents</h2>
           
           {documents.length === 0 ? (
-            <Card className="glass-card p-12 text-center">
-              <FileText size={48} className="text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No documents yet</h3>
-              <p className="text-gray-500">Upload your first document to get started!</p>
+            <Card className="bg-slate-700/80 backdrop-blur-xl border border-slate-600/50 p-12 text-center shadow-2xl">
+              <FileText size={48} className="text-slate-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-slate-300 mb-2">No documents yet</h3>
+              <p className="text-slate-400">Upload your first document to get started!</p>
             </Card>
           ) : (
             <div className="grid gap-6">
               {documents.map((doc) => (
-                <Card key={doc.id} className="glass-card p-6 hover-lift">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-blue-gradient rounded-xl flex items-center justify-center">
-                        <FileText size={24} className="text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800">{doc.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {doc.pages} pages • Uploaded {doc.uploadDate}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <div className="w-32 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-purple-gradient h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${doc.progress}%` }}
-                            ></div>
+                <Card key={doc.id} className="bg-slate-700/80 backdrop-blur-xl border border-slate-600/50 p-6 hover-lift shadow-2xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-blue-gradient rounded-xl flex items-center justify-center shadow-lg">
+                          <FileText size={24} className="text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-white">{doc.name}</h3>
+                          <p className="text-sm text-slate-300">
+                            {doc.pages} pages • Uploaded {doc.uploadDate}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <div className="w-32 bg-slate-600 rounded-full h-2">
+                              <div 
+                                className="bg-purple-gradient h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${doc.progress}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm text-slate-300">{doc.progress}%</span>
                           </div>
-                          <span className="text-sm text-gray-600">{doc.progress}%</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex space-x-3">
-                      <Link to={`/document/${doc.id}`}>
-                        <Button variant="outline" className="btn-3d">
-                          <BookOpen size={16} className="mr-2" />
-                          Study
-                        </Button>
-                      </Link>
-                      <Link to={`/quiz/${doc.id}`}>
-                        <Button className="btn-3d bg-pink-gradient hover:opacity-90 text-white">
-                          <Target size={16} className="mr-2" />
-                          Quiz
-                        </Button>
-                      </Link>
+                      <div className="flex space-x-3">
+                        <Link to={`/document/${doc.id}`}>
+                          <Button variant="outline" className="btn-3d border-slate-500 text-slate-200 hover:text-white hover:border-slate-400">
+                            <BookOpen size={16} className="mr-2" />
+                            Study
+                          </Button>
+                        </Link>
+                        <Link to={`/quiz/${doc.id}`}>
+                          <Button className="btn-3d bg-pink-gradient hover:opacity-90 text-white">
+                            <Target size={16} className="mr-2" />
+                            Quiz
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </Card>

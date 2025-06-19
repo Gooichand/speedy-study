@@ -179,19 +179,22 @@ const QuizInterface = () => {
     return (
       <div className="min-h-screen pt-24 pb-12 px-6">
         <div className="container mx-auto max-w-4xl">
-          <Card className="glass-card-dark border-2 border-purple-500/30">
-            <CardHeader className="text-center">
+          <Card className="bg-slate-700/90 backdrop-blur-xl border-2 border-purple-500/50 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10"></div>
+            <div className="absolute inset-[1px] bg-slate-700/95 backdrop-blur-xl rounded-lg"></div>
+            
+            <CardHeader className="text-center relative z-10">
               <CardTitle className="text-3xl font-bold text-gradient mb-4">
                 Quiz Complete! 🎉
               </CardTitle>
               <div className={`text-6xl font-bold ${getScoreColor()}`}>
                 {score}/{currentQuizData.questions.length}
               </div>
-              <p className="text-xl text-slate-300 mt-2">
+              <p className="text-xl text-slate-200 mt-2">
                 You scored {Math.round((score / currentQuizData.questions.length) * 100)}%
               </p>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 relative z-10">
               {currentQuizData.questions.map((question, index) => {
                 const userAnswer = answers[index];
                 const isCorrect = typeof userAnswer === 'string' && typeof question.correctAnswer === 'string' 
@@ -199,7 +202,7 @@ const QuizInterface = () => {
                   : false;
 
                 return (
-                  <div key={question.id} className="border border-slate-600 rounded-lg p-4 bg-slate-800/50">
+                  <div key={question.id} className="border border-slate-500 rounded-lg p-4 bg-slate-600/50 backdrop-blur-sm">
                     <div className="flex items-start space-x-3">
                       {isCorrect ? (
                         <CheckCircle className="text-green-400 mt-1" size={20} />
@@ -207,12 +210,12 @@ const QuizInterface = () => {
                         <XCircle className="text-red-400 mt-1" size={20} />
                       )}
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-2 text-slate-200">Question {index + 1}</h3>
-                        <p className="text-slate-300 mb-2">{question.question}</p>
+                        <h3 className="font-semibold mb-2 text-slate-100">Question {index + 1}</h3>
+                        <p className="text-slate-200 mb-2">{question.question}</p>
                         <div className="space-y-1">
-                          <p className="text-slate-300"><strong>Your answer:</strong> {userAnswer || 'Not answered'}</p>
-                          <p className="text-slate-300"><strong>Correct answer:</strong> {question.correctAnswer}</p>
-                          <p className="text-sm text-slate-400 mt-2">{question.explanation}</p>
+                          <p className="text-slate-200"><strong>Your answer:</strong> {userAnswer || 'Not answered'}</p>
+                          <p className="text-slate-200"><strong>Correct answer:</strong> {question.correctAnswer}</p>
+                          <p className="text-sm text-slate-300 mt-2">{question.explanation}</p>
                         </div>
                       </div>
                     </div>
@@ -251,25 +254,28 @@ const QuizInterface = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gradient mb-4">{currentQuizData.title}</h1>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-slate-300">
+            <span className="text-slate-200">
               Question {currentQuestion + 1} of {currentQuizData.questions.length}
             </span>
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-300">
               Progress: {Math.round(progress)}%
             </span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
 
-        <Card className="glass-card-dark border-2 border-purple-500/30">
-          <CardHeader>
+        <Card className="bg-slate-700/90 backdrop-blur-xl border-2 border-purple-500/50 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10"></div>
+          <div className="absolute inset-[1px] bg-slate-700/95 backdrop-blur-xl rounded-lg"></div>
+          
+          <CardHeader className="relative z-10">
             <CardTitle className="flex items-center space-x-2">
               <Brain className="text-purple-400" size={24} />
-              <span className="text-slate-200">Question {currentQuestion + 1}</span>
+              <span className="text-slate-100">Question {currentQuestion + 1}</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="text-lg font-medium text-slate-200">
+          <CardContent className="space-y-6 relative z-10">
+            <div className="text-lg font-medium text-slate-100">
               {currentQ.question}
             </div>
 
@@ -280,8 +286,8 @@ const QuizInterface = () => {
                     key={index}
                     className={`block p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
                       selectedAnswer === option
-                        ? 'border-purple-500 bg-purple-500/20'
-                        : 'border-slate-600 hover:border-purple-400'
+                        ? 'border-purple-400 bg-purple-500/20 backdrop-blur-sm'
+                        : 'border-slate-500 bg-slate-600/30 hover:border-purple-400 hover:bg-slate-600/50'
                     }`}
                   >
                     <input
@@ -292,7 +298,7 @@ const QuizInterface = () => {
                       onChange={(e) => handleAnswerSelect(e.target.value)}
                       className="sr-only"
                     />
-                    <span className="text-slate-300">{option}</span>
+                    <span className="text-slate-200">{option}</span>
                   </label>
                 ))}
               </div>
@@ -305,7 +311,7 @@ const QuizInterface = () => {
                   value={selectedAnswer}
                   onChange={(e) => handleAnswerSelect(e.target.value)}
                   placeholder="Type your answer here..."
-                  className="w-full p-4 border-2 border-slate-600 rounded-lg focus:border-purple-500 focus:outline-none bg-slate-800/50 text-slate-200 placeholder-slate-400"
+                  className="w-full p-4 border-2 border-slate-500 rounded-lg focus:border-purple-400 focus:outline-none bg-slate-600/50 text-slate-100 placeholder-slate-300 backdrop-blur-sm"
                 />
               </div>
             )}
@@ -320,7 +326,7 @@ const QuizInterface = () => {
                   }
                 }}
                 disabled={currentQuestion === 0}
-                className="border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white bg-slate-800/50"
+                className="border-slate-500 hover:border-slate-400 text-slate-200 hover:text-white bg-slate-600/50 hover:bg-slate-600/70"
               >
                 Previous
               </Button>
