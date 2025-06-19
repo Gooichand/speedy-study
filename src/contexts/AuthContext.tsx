@@ -32,6 +32,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Reset inactivity timer when auth state changes
+        if (session?.user) {
+          setTimeout(() => {
+            resetInactivityTimer();
+          }, 0);
+        }
       }
     );
 
@@ -40,12 +47,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      if (session?.user) {
+        resetInactivityTimer();
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // Auto-logout after 1 hour of inactivity
+  let inactivityTimer: NodeJS.Timeout;
+  const INACTIVITY_TIME = 60 * 60 * 1000; // 1 hour in milliseconds
+
+  const resetInactivityTimer = () => {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    
+    if (user) {
+      inactivityTimer = setTimeout(() => {
+        signOut();
+        alert('You have been logged out due to inactivity.');
+      }, INACTIVITY_TIME);
+    }
+  };
+
+  // Reset timer on user activity
+  useEffect(() => {
+    if (user) {
+      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+      
+      const resetTimer = () => resetInactivityTimer();
+      
+      events.forEach(event => {
+        document.addEventListener(event, resetTimer, true);
+      });
+
+      return () => {
+        events.forEach(event => {
+          document.removeEventListener(event, resetTimer, true);
+        });
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+      };
+    }
+  }, [user]);
+
   const signOut = async () => {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
     await supabase.auth.signOut();
     window.location.href = '/auth';
   };

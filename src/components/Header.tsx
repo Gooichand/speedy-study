@@ -17,11 +17,11 @@ const Header = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-3 hover-lift">
             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center neon-glow transform-3d rotate-y-12">
-              <span className="text-white font-bold text-xl">D</span>
+              <span className="text-white font-bold text-xl">S</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gradient font-space">DGC-AI</h1>
-              <p className="text-sm text-slate-400">AI-Powered Education</p>
+              <h1 className="text-2xl font-bold text-gradient font-space">Speedy Study</h1>
+              <p className="text-sm text-slate-400">DGC-AI</p>
             </div>
           </Link>
 

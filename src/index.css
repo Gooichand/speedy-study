@@ -52,7 +52,7 @@
   }
 
   html {
-    @apply dark;
+    color-scheme: dark;
   }
 
   body {
@@ -131,6 +131,29 @@
     border-radius: 50%;
     animation: particle-float 8s ease-in-out infinite;
   }
+
+  .morphing-shape {
+    position: absolute;
+    background: linear-gradient(45deg, #8B5CF6, #EC4899, #3B82F6);
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.3;
+    animation: morph 8s ease-in-out infinite;
+  }
+
+  .cube-3d {
+    transform-style: preserve-3d;
+    animation: rotate-3d 20s linear infinite;
+  }
+
+  .cube-face {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(45deg, rgba(139, 92, 246, 0.8), rgba(236, 72, 153, 0.8));
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+  }
 }
 
 @layer utilities {
@@ -190,6 +213,32 @@
 @keyframes confetti-fall {
   0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
   100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes morph {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    border-radius: 50%;
+  }
+  25% {
+    transform: translate(100px, -50px) scale(1.2);
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  }
+  50% {
+    transform: translate(-50px, 100px) scale(0.8);
+    border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+  }
+  75% {
+    transform: translate(-100px, -100px) scale(1.1);
+    border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
+  }
+}
+
+@keyframes rotate-3d {
+  0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  33% { transform: rotateX(360deg) rotateY(120deg) rotateZ(0deg); }
+  66% { transform: rotateX(360deg) rotateY(240deg) rotateZ(360deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
 }
 
 .congratulations-enter {

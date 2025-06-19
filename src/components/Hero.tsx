@@ -10,16 +10,26 @@ const Hero = () => {
 
   return (
     <section className="pt-32 pb-20 px-6 relative overflow-hidden">
-      {/* Animated Background Elements */}
+      {/* Enhanced Background Elements with 3D Effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 floating-element"></div>
-        <div className="absolute top-40 right-10 w-96 h-96 bg-pink-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 floating-element" style={{animationDelay: '2s'}}></div>
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 floating-element" style={{animationDelay: '4s'}}></div>
+        <div className="morphing-shape w-96 h-96 top-20 left-10"></div>
+        <div className="morphing-shape w-96 h-96 top-40 right-10" style={{animationDelay: '2s'}}></div>
+        <div className="morphing-shape w-96 h-96 -bottom-8 left-20" style={{animationDelay: '4s'}}></div>
+        
+        {/* 3D Floating Cubes */}
+        <div className="absolute top-1/4 right-1/4 cube-3d">
+          <div className="cube-face" style={{transform: 'rotateY(0deg) translateZ(50px)'}}></div>
+          <div className="cube-face" style={{transform: 'rotateY(90deg) translateZ(50px)'}}></div>
+          <div className="cube-face" style={{transform: 'rotateY(180deg) translateZ(50px)'}}></div>
+          <div className="cube-face" style={{transform: 'rotateY(-90deg) translateZ(50px)'}}></div>
+          <div className="cube-face" style={{transform: 'rotateX(90deg) translateZ(50px)'}}></div>
+          <div className="cube-face" style={{transform: 'rotateX(-90deg) translateZ(50px)'}}></div>
+        </div>
       </div>
 
-      {/* Floating Particles */}
+      {/* Enhanced Floating Particles */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(30)].map((_, i) => (
           <div
             key={i}
             className="particle"
@@ -98,7 +108,7 @@ const Hero = () => {
             )}
           </div>
 
-          {/* Enhanced Stats Section */}
+          {/* Enhanced Stats Section with 3D Effects */}
           <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
             <div className="glass-card-dark p-8 rounded-2xl hover-lift transform-3d rotate-y-12 border border-purple-500/20">
               <div className="text-5xl font-bold text-gradient mb-4">10x</div>
