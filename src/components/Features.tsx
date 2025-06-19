@@ -63,13 +63,17 @@ const Features = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {features.map((feature, index) => (
-            <Card key={index} className="glass-card-dark border border-slate-700/50 hover-lift group">
-              <CardContent className="p-8">
-                <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 neon-glow`}>
+            <Card key={index} className="bg-slate-800/80 backdrop-blur-xl border border-slate-600/50 hover-lift group relative overflow-hidden">
+              {/* Gradient border effect */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-20 group-hover:opacity-30 transition-opacity duration-300`}></div>
+              <div className="absolute inset-[1px] bg-slate-800/90 backdrop-blur-xl rounded-lg"></div>
+              
+              <CardContent className="p-8 relative z-10">
+                <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-200 mb-4">{feature.title}</h3>
-                <p className="text-slate-400 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-bold text-white mb-4 group-hover:text-gradient transition-all duration-300">{feature.title}</h3>
+                <p className="text-slate-300 leading-relaxed group-hover:text-slate-200 transition-colors duration-300">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
