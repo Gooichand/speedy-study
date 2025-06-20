@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -74,7 +73,16 @@ const QuizInterface = () => {
         return;
       }
 
-      setQuiz(quizData);
+      // Parse the questions from Json to Question array
+      const parsedQuestions = Array.isArray(quizData.questions) 
+        ? quizData.questions as Question[]
+        : [];
+
+      setQuiz({
+        id: quizData.id,
+        questions: parsedQuestions,
+        document_id: quizData.document_id
+      });
     } catch (error) {
       console.error('Error in fetchQuizData:', error);
       toast({
