@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Target, ArrowLeft, FileText, Brain, Lightbulb, Loader2 } from 'lucide-react';
+import { BookOpen, Target, ArrowLeft, Lightbulb, Loader2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useSummaryGeneration } from '@/hooks/useSummaryGeneration';
+import SummaryDisplay from '@/components/SummaryDisplay';
 
 interface Document {
   id: string;
@@ -39,10 +41,10 @@ const DocumentViewer = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { generateSummaryAndQuiz, loading: generatingSummary } = useSummaryGeneration();
   const [document, setDocument] = useState<Document | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedPages, setSelectedPages] = useState<number[]>([]);
 
   useEffect(() => {
     if (id && user) {
@@ -85,7 +87,6 @@ const DocumentViewer = () => {
       if (quizError) {
         console.error('Error fetching quiz:', quizError);
       } else if (quizData) {
-        // Parse the questions from Json to Question array
         const parsedQuestions = Array.isArray(quizData.questions) 
           ? quizData.questions as unknown as Question[]
           : [];
@@ -109,33 +110,22 @@ const DocumentViewer = () => {
     }
   };
 
-  const generateTopicsFromContent = (content: string, summary: string) => {
-    if (!content && !summary) return [];
+  const handleRegenerateSummary = async () => {
+    if (!document) return;
 
-    // Split content into sections based on common patterns
-    const sections = content ? content.split(/\n\s*\n/).filter(section => section.trim().length > 50) : [];
-    
-    if (sections.length === 0 && summary) {
-      // If no content sections, create topics from summary
-      return [{
-        title: document?.title || "Document Overview",
-        pages: "1-5",
-        summary: summary,
-        difficulty: "Beginner"
-      }];
+    try {
+      const result = await generateSummaryAndQuiz(
+        document.id,
+        document.content || document.title,
+        document.title,
+        document.file_size
+      );
+
+      // Refresh the document data
+      await fetchDocumentData();
+    } catch (error) {
+      console.error('Error regenerating summary:', error);
     }
-
-    return sections.slice(0, 5).map((section, index) => {
-      const firstLine = section.split('\n')[0].trim();
-      const title = firstLine.length > 5 ? firstLine.substring(0, 60) + '...' : `Section ${index + 1}`;
-      
-      return {
-        title: title,
-        pages: `${index * 5 + 1}-${(index + 1) * 5}`,
-        summary: section.substring(0, 200) + '...',
-        difficulty: index < 2 ? "Beginner" : index < 4 ? "Intermediate" : "Advanced"
-      };
-    });
   };
 
   if (loading) {
@@ -172,20 +162,6 @@ const DocumentViewer = () => {
     );
   }
 
-  const topics = generateTopicsFromContent(document.content || '', document.summary || '');
-
-  const togglePageSelection = (pageRange: string) => {
-    const [start, end] = pageRange.split('-').map(Number);
-    const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    
-    const isSelected = pages.every(page => selectedPages.includes(page));
-    if (isSelected) {
-      setSelectedPages(prev => prev.filter(page => !pages.includes(page)));
-    } else {
-      setSelectedPages(prev => [...new Set([...prev, ...pages])]);
-    }
-  };
-
   return (
     <div className="pt-28 pb-20 px-6 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto max-w-6xl">
@@ -209,91 +185,40 @@ const DocumentViewer = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Summary Section */}
-            <Card className="bg-white/90 backdrop-blur-sm border-blue-100 shadow-lg p-8">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Brain size={24} className="text-white" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-800">AI-Generated Summary</h2>
-              </div>
-
-              {document.summary ? (
-                <Tabs defaultValue="detailed" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6 bg-blue-50">
-                    <TabsTrigger value="detailed" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">Detailed</TabsTrigger>
-                    <TabsTrigger value="brief" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">Brief</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="detailed" className="space-y-4">
-                    <div className="prose max-w-none">
-                      <p className="text-gray-700 leading-relaxed text-lg">{document.summary}</p>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="brief" className="space-y-4">
-                    <div className="prose max-w-none">
-                      <p className="text-gray-700 leading-relaxed text-lg">
-                        {document.summary.substring(0, 200) + (document.summary.length > 200 ? '...' : '')}
-                      </p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 text-lg">No summary available for this document.</p>
-                  {!document.processed && (
-                    <p className="text-sm text-amber-600 mt-2">Document is still being processed...</p>
-                  )}
-                </div>
-              )}
-            </Card>
-
-            {/* Topics Breakdown */}
-            {topics.length > 0 && (
+            {document.summary ? (
+              <SummaryDisplay summary={document.summary} title={document.title} />
+            ) : (
               <Card className="bg-white/90 backdrop-blur-sm border-blue-100 shadow-lg p-8">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-600 rounded-xl flex items-center justify-center">
-                    <FileText size={24} className="text-white" />
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Lightbulb size={32} className="text-white" />
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-800">Content Analysis</h2>
-                </div>
-
-                <div className="space-y-6">
-                  {topics.map((topic, index) => (
-                    <div 
-                      key={index}
-                      className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 p-6 rounded-xl hover:shadow-md transition-all cursor-pointer"
-                      onClick={() => togglePageSelection(topic.pages)}
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">No Summary Available</h3>
+                  <p className="text-gray-600 mb-6">
+                    {!document.processed 
+                      ? "This document is still being processed. The summary will be available shortly."
+                      : "Generate a comprehensive AI summary with detailed analysis, key points, and quiz questions."
+                    }
+                  </p>
+                  {document.processed && (
+                    <Button
+                      onClick={handleRegenerateSummary}
+                      disabled={generatingSummary}
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-xl font-bold text-gray-800">{topic.title}</h3>
-                            <Badge 
-                              variant="outline" 
-                              className={`${
-                                topic.difficulty === 'Beginner' ? 'border-green-300 text-green-700 bg-green-50' :
-                                topic.difficulty === 'Intermediate' ? 'border-yellow-300 text-yellow-700 bg-yellow-50' :
-                                'border-red-300 text-red-700 bg-red-50'
-                              }`}
-                            >
-                              {topic.difficulty}
-                            </Badge>
-                          </div>
-                          <p className="text-gray-600 mb-2">Section {topic.pages}</p>
-                          <p className="text-gray-700 leading-relaxed">{topic.summary}</p>
-                        </div>
-                        <input
-                          type="checkbox"
-                          checked={topic.pages.split('-').map(Number).every(page => 
-                            Array.from({ length: page }, (_, i) => i + 1).every(p => selectedPages.includes(p))
-                          )}
-                          onChange={() => togglePageSelection(topic.pages)}
-                          className="w-5 h-5 text-blue-500 rounded focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  ))}
+                      {generatingSummary ? (
+                        <>
+                          <Loader2 size={20} className="mr-2 animate-spin" />
+                          Generating Summary...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw size={20} className="mr-2" />
+                          Generate AI Summary
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </Card>
             )}
@@ -312,15 +237,41 @@ const DocumentViewer = () => {
                     </Button>
                   </Link>
                 ) : (
-                  <Button disabled className="w-full bg-gray-300 text-gray-500">
+                  <Button 
+                    onClick={handleRegenerateSummary}
+                    disabled={generatingSummary || !document.processed}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg disabled:opacity-50"
+                  >
                     <Target size={20} className="mr-2" />
-                    No Quiz Available
+                    {generatingSummary ? 'Generating Quiz...' : 'Generate Quiz'}
                   </Button>
                 )}
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg">
                   <BookOpen size={20} className="mr-2" />
                   Study Mode
                 </Button>
+              </div>
+            </Card>
+
+            <Card className="bg-white/90 backdrop-blur-sm border-blue-100 shadow-lg p-6">
+              <h3 className="text-xl font-bold mb-4 text-gray-800">Document Stats</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">File Size:</span>
+                  <span className="font-medium">{(document.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <Badge variant={document.processed ? "default" : "secondary"}>
+                    {document.processed ? "Processed" : "Processing"}
+                  </Badge>
+                </div>
+                {quiz && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Quiz Questions:</span>
+                    <span className="font-medium">{quiz.questions?.length || 0}</span>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -332,7 +283,7 @@ const DocumentViewer = () => {
                     <Lightbulb size={16} className="text-white" />
                   </div>
                   <p className="text-sm text-gray-600">
-                    Review the AI summary before diving into detailed content
+                    Read the detailed summary first for comprehensive understanding
                   </p>
                 </div>
                 <div className="flex items-start space-x-3">
@@ -340,7 +291,7 @@ const DocumentViewer = () => {
                     <Lightbulb size={16} className="text-white" />
                   </div>
                   <p className="text-sm text-gray-600">
-                    Use the quiz to test your understanding of key concepts
+                    Use key points for quick review and memorization
                   </p>
                 </div>
                 <div className="flex items-start space-x-3">
@@ -348,28 +299,11 @@ const DocumentViewer = () => {
                     <Lightbulb size={16} className="text-white" />
                   </div>
                   <p className="text-sm text-gray-600">
-                    Focus on sections marked as your difficulty level
+                    Take the quiz to test your understanding
                   </p>
                 </div>
               </div>
             </Card>
-
-            {selectedPages.length > 0 && (
-              <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 shadow-lg p-6">
-                <h3 className="text-lg font-bold mb-3 text-gray-800">Selected Sections</h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  {selectedPages.length} sections selected for focused study
-                </p>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => setSelectedPages([])}
-                  className="w-full border-amber-300 text-amber-700 hover:bg-amber-100"
-                >
-                  Clear Selection
-                </Button>
-              </Card>
-            )}
           </div>
         </div>
       </div>
