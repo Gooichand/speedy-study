@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -88,7 +87,7 @@ const DocumentViewer = () => {
       } else if (quizData) {
         // Parse the questions from Json to Question array
         const parsedQuestions = Array.isArray(quizData.questions) 
-          ? quizData.questions as Question[]
+          ? quizData.questions as unknown as Question[]
           : [];
         
         setQuiz({
@@ -172,35 +171,6 @@ const DocumentViewer = () => {
       </div>
     );
   }
-
-  const generateTopicsFromContent = (content: string, summary: string) => {
-    if (!content && !summary) return [];
-
-    // Split content into sections based on common patterns
-    const sections = content ? content.split(/\n\s*\n/).filter(section => section.trim().length > 50) : [];
-    
-    if (sections.length === 0 && summary) {
-      // If no content sections, create topics from summary
-      return [{
-        title: document?.title || "Document Overview",
-        pages: "1-5",
-        summary: summary,
-        difficulty: "Beginner"
-      }];
-    }
-
-    return sections.slice(0, 5).map((section, index) => {
-      const firstLine = section.split('\n')[0].trim();
-      const title = firstLine.length > 5 ? firstLine.substring(0, 60) + '...' : `Section ${index + 1}`;
-      
-      return {
-        title: title,
-        pages: `${index * 5 + 1}-${(index + 1) * 5}`,
-        summary: section.substring(0, 200) + '...',
-        difficulty: index < 2 ? "Beginner" : index < 4 ? "Intermediate" : "Advanced"
-      };
-    });
-  };
 
   const topics = generateTopicsFromContent(document.content || '', document.summary || '');
 

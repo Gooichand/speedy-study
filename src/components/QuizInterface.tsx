@@ -75,7 +75,7 @@ const QuizInterface = () => {
 
       // Parse the questions from Json to Question array
       const parsedQuestions = Array.isArray(quizData.questions) 
-        ? quizData.questions as Question[]
+        ? quizData.questions as unknown as Question[]
         : [];
 
       setQuiz({
