@@ -1,57 +1,153 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Upload, FileText, BookOpen, Target, Clock, TrendingUp } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/use-toast';
+
+interface Document {
+  id: string;
+  title: string;
+  file_name: string;
+  upload_date: string;
+  processed: boolean;
+  file_size?: number;
+}
+
+interface Quiz {
+  id: string;
+  document_id: string;
+  score?: number;
+  completed_at?: string;
+}
 
 const Dashboard = () => {
-  const [documents] = useState([
-    {
-      id: 1,
-      name: "Introduction to Machine Learning.pdf",
-      uploadDate: "2024-01-15",
-      pages: 45,
-      status: "processed",
-      progress: 75
-    },
-    {
-      id: 2,
-      name: "Web Development Basics.docx",
-      uploadDate: "2024-01-14",
-      pages: 28,
-      status: "processed",
-      progress: 90
-    },
-    {
-      id: 3,
-      name: "Data Structures.pptx",
-      uploadDate: "2024-01-13",
-      pages: 60,
-      status: "processing",
-      progress: 30
+  const { user } = useAuth();
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
     }
-  ]);
+  }, [user]);
+
+  const fetchUserData = async () => {
+    try {
+      console.log('Fetching user data for:', user?.id);
+      
+      // Fetch documents
+      const { data: documentsData, error: documentsError } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('upload_date', { ascending: false });
+
+      if (documentsError) {
+        console.error('Error fetching documents:', documentsError);
+        toast({
+          title: "Error",
+          description: "Failed to load documents",
+          variant: "destructive",
+        });
+      } else {
+        console.log('Documents fetched:', documentsData);
+        setDocuments(documentsData || []);
+      }
+
+      // Fetch quizzes
+      const { data: quizzesData, error: quizzesError } = await supabase
+        .from('quizzes')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (quizzesError) {
+        console.error('Error fetching quizzes:', quizzesError);
+      } else {
+        console.log('Quizzes fetched:', quizzesData);
+        setQuizzes(quizzesData || []);
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching data:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while loading your data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDocumentPages = (doc: Document) => {
+    // Estimate pages based on file size or return default
+    if (doc.file_size) {
+      return Math.ceil(doc.file_size / 2000); // Rough estimate
+    }
+    return Math.floor(Math.random() * 50) + 10; // Placeholder
+  };
+
+  const getProgress = (doc: Document) => {
+    return doc.processed ? 100 : 30;
+  };
+
+  const completedQuizzes = quizzes.filter(q => q.completed_at).length;
+  const averageScore = quizzes.length > 0 
+    ? Math.round(quizzes.reduce((sum, q) => sum + (q.score || 0), 0) / quizzes.length)
+    : 0;
 
   const stats = [
-    { label: "Documents Processed", value: "12", icon: FileText, gradient: "bg-blue-gradient" },
-    { label: "Quizzes Completed", value: "28", icon: Target, gradient: "bg-purple-gradient" },
-    { label: "Study Hours", value: "15.5", icon: Clock, gradient: "bg-pink-gradient" },
-    { label: "Learning Progress", value: "82%", icon: TrendingUp, gradient: "bg-green-gradient" }
+    { 
+      label: "Documents Processed", 
+      value: documents.length.toString(), 
+      icon: FileText, 
+      gradient: "bg-blue-gradient" 
+    },
+    { 
+      label: "Quizzes Completed", 
+      value: completedQuizzes.toString(), 
+      icon: Target, 
+      gradient: "bg-purple-gradient" 
+    },
+    { 
+      label: "Average Score", 
+      value: `${averageScore}%`, 
+      icon: TrendingUp, 
+      gradient: "bg-green-gradient" 
+    },
+    { 
+      label: "Study Sessions", 
+      value: documents.filter(d => d.processed).length.toString(), 
+      icon: Clock, 
+      gradient: "bg-pink-gradient" 
+    }
   ];
 
+  if (loading) {
+    return (
+      <div className="pt-28 pb-20 px-6 min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="pt-28 pb-20 px-6 min-h-screen">
+    <div className="pt-28 pb-20 px-6 min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="container mx-auto">
         <div className="mb-12">
-          <h1 className="text-5xl font-bold mb-4 text-gradient font-space">Learning Dashboard</h1>
-          <p className="text-xl text-slate-300">Track your progress and manage your documents</p>
+          <h1 className="text-5xl font-bold mb-4 text-white font-space">Learning Dashboard</h1>
+          <p className="text-xl text-slate-200">Track your progress and manage your documents</p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stats.map((stat, index) => (
-            <Card key={index} className="bg-slate-700/80 backdrop-blur-xl border border-slate-600/50 p-6 hover-lift shadow-2xl">
+            <Card key={index} className="bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 p-6 hover-lift shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between">
@@ -69,7 +165,7 @@ const Dashboard = () => {
         </div>
 
         {/* Upload Section */}
-        <Card className="bg-slate-700/80 backdrop-blur-xl border border-slate-600/50 p-8 mb-12 text-center shadow-2xl relative overflow-hidden">
+        <Card className="bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 p-8 mb-12 text-center shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10"></div>
           <div className="relative z-10">
             <div className="max-w-2xl mx-auto">
@@ -77,7 +173,7 @@ const Dashboard = () => {
                 <Upload size={40} className="text-white" />
               </div>
               <h2 className="text-3xl font-bold mb-4 text-white">Ready to Learn Something New?</h2>
-              <p className="text-slate-300 mb-6">
+              <p className="text-slate-200 mb-6">
                 Upload any document and let our AI create a personalized learning experience for you
               </p>
               <Link to="/upload">
@@ -95,15 +191,15 @@ const Dashboard = () => {
           <h2 className="text-3xl font-bold text-white mb-6">Your Documents</h2>
           
           {documents.length === 0 ? (
-            <Card className="bg-slate-700/80 backdrop-blur-xl border border-slate-600/50 p-12 text-center shadow-2xl">
+            <Card className="bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 p-12 text-center shadow-2xl">
               <FileText size={48} className="text-slate-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-slate-300 mb-2">No documents yet</h3>
+              <h3 className="text-xl font-semibold text-slate-200 mb-2">No documents yet</h3>
               <p className="text-slate-400">Upload your first document to get started!</p>
             </Card>
           ) : (
             <div className="grid gap-6">
               {documents.map((doc) => (
-                <Card key={doc.id} className="bg-slate-700/80 backdrop-blur-xl border border-slate-600/50 p-6 hover-lift shadow-2xl relative overflow-hidden">
+                <Card key={doc.id} className="bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 p-6 hover-lift shadow-2xl relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5"></div>
                   <div className="relative z-10">
                     <div className="flex items-center justify-between">
@@ -112,18 +208,18 @@ const Dashboard = () => {
                           <FileText size={24} className="text-white" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-white">{doc.name}</h3>
+                          <h3 className="text-lg font-semibold text-white">{doc.title}</h3>
                           <p className="text-sm text-slate-300">
-                            {doc.pages} pages • Uploaded {doc.uploadDate}
+                            {getDocumentPages(doc)} pages • Uploaded {new Date(doc.upload_date).toLocaleDateString()}
                           </p>
                           <div className="flex items-center space-x-2 mt-2">
                             <div className="w-32 bg-slate-600 rounded-full h-2">
                               <div 
                                 className="bg-purple-gradient h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${doc.progress}%` }}
+                                style={{ width: `${getProgress(doc)}%` }}
                               ></div>
                             </div>
-                            <span className="text-sm text-slate-300">{doc.progress}%</span>
+                            <span className="text-sm text-slate-300">{getProgress(doc)}%</span>
                           </div>
                         </div>
                       </div>
@@ -134,12 +230,14 @@ const Dashboard = () => {
                             Study
                           </Button>
                         </Link>
-                        <Link to={`/quiz/${doc.id}`}>
-                          <Button className="btn-3d bg-pink-gradient hover:opacity-90 text-white">
-                            <Target size={16} className="mr-2" />
-                            Quiz
-                          </Button>
-                        </Link>
+                        {doc.processed && (
+                          <Link to={`/quiz/${doc.id}`}>
+                            <Button className="btn-3d bg-pink-gradient hover:opacity-90 text-white">
+                              <Target size={16} className="mr-2" />
+                              Quiz
+                            </Button>
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>

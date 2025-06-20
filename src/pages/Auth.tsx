@@ -1,319 +1,305 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Brain, ArrowLeft, Sparkles, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { toast } from '@/components/ui/use-toast';
+import { Eye, EyeOff, Mail, Lock, User, BookOpen } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 import { useSecurityContext } from '@/contexts/SecurityContext';
-import CongratulationsPopup from '@/components/CongratulationsPopup';
-import { useToast } from '@/hooks/use-toast';
-import { validateEmail, validatePassword, validateFullName, sanitizeText, authRateLimiter } from '@/utils/security';
 
 const Auth = () => {
+  const { user } = useAuth();
+  const { addAlert, logSecurityEvent } = useSecurityContext();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showCongrats, setShowCongrats] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [rateLimited, setRateLimited] = useState(false);
-  const { user } = useAuth();
-  const { addAlert, logSecurityEvent } = useSecurityContext();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
+  // Redirect if already authenticated
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
-  const validateForm = (): boolean => {
-    const errors: string[] = [];
-
-    // Email validation
-    if (!validateEmail(email)) {
-      errors.push('Please enter a valid email address');
+  const validateInput = (email: string, password: string) => {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return false;
     }
 
-    // Password validation
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.isValid) {
-      errors.push(...passwordValidation.errors);
+    // Password strength validation
+    if (password.length < 6) {
+      toast({
+        title: "Weak Password",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return false;
     }
 
-    // Full name validation for signup
-    if (!isLogin && !validateFullName(fullName)) {
-      errors.push('Full name must be 2-100 characters and contain only letters, spaces, hyphens, and apostrophes');
-    }
-
-    setValidationErrors(errors);
-    return errors.length === 0;
+    return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check rate limiting
-    const clientIP = 'client'; // In production, you'd get the actual IP
-    if (!authRateLimiter.isAllowed(clientIP)) {
-      const remainingTime = Math.ceil(authRateLimiter.getRemainingTime(clientIP) / 1000 / 60);
-      setRateLimited(true);
-      addAlert('error', `Too many login attempts. Please try again in ${remainingTime} minutes.`);
-      logSecurityEvent('RATE_LIMITED_AUTH_ATTEMPT', { email: email.substring(0, 3) + '***' });
-      return;
-    }
-
-    // Validate form
-    if (!validateForm()) {
-      addAlert('warning', 'Please fix the validation errors before continuing');
+    if (!validateInput(email, password)) return;
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
       return;
     }
 
     setLoading(true);
-    setRateLimited(false);
-
-    // Sanitize inputs
-    const sanitizedEmail = sanitizeText(email.toLowerCase().trim());
-    const sanitizedFullName = sanitizeText(fullName.trim());
-
+    
     try {
-      if (isLogin) {
-        logSecurityEvent('LOGIN_ATTEMPT', { email: sanitizedEmail.substring(0, 3) + '***' });
-        
-        const { error } = await supabase.auth.signInWithPassword({
-          email: sanitizedEmail,
-          password,
-        });
-
-        if (error) {
-          logSecurityEvent('LOGIN_FAILED', { 
-            email: sanitizedEmail.substring(0, 3) + '***',
-            error: error.message 
-          });
-          
-          toast({
-            title: "Login Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          logSecurityEvent('LOGIN_SUCCESS', { email: sanitizedEmail.substring(0, 3) + '***' });
-          setShowCongrats(true);
-        }
-      } else {
-        logSecurityEvent('SIGNUP_ATTEMPT', { email: sanitizedEmail.substring(0, 3) + '***' });
-        
-        const { error } = await supabase.auth.signUp({
-          email: sanitizedEmail,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: sanitizedFullName,
-            }
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName,
           }
-        });
-
-        if (error) {
-          logSecurityEvent('SIGNUP_FAILED', { 
-            email: sanitizedEmail.substring(0, 3) + '***',
-            error: error.message 
-          });
-          
-          toast({
-            title: "Signup Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          logSecurityEvent('SIGNUP_SUCCESS', { email: sanitizedEmail.substring(0, 3) + '***' });
-          
-          toast({
-            title: "Success",
-            description: "Please check your email to confirm your account.",
-          });
-          setShowCongrats(true);
         }
+      });
+
+      if (error) {
+        console.error('Signup error:', error);
+        addAlert('error', `Signup failed: ${error.message}`);
+        logSecurityEvent('SIGNUP_FAILED', { email, error: error.message });
+        
+        toast({
+          title: "Sign Up Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        logSecurityEvent('SIGNUP_SUCCESS', { email });
+        toast({
+          title: "Registration Successful!",
+          description: "Please check your email to activate your account before signing in.",
+          variant: "default",
+        });
+        addAlert('info', 'Please check your email to activate your account');
+        // Clear form
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setFullName('');
+        // Switch to login view
+        setIsLogin(true);
       }
     } catch (error) {
-      logSecurityEvent('AUTH_ERROR', { error: error instanceof Error ? error.message : 'Unknown error' });
-      
+      console.error('Unexpected signup error:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: "Unexpected Error",
+        description: "An unexpected error occurred during sign up.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
+    
+    setLoading(false);
   };
 
-  const handleCongratulationsClose = () => {
-    setShowCongrats(false);
-    if (user) {
-      navigate('/');
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Rate limiting check
+    if (loginAttempts >= 5) {
+      addAlert('error', 'Too many failed login attempts. Please wait before trying again.');
+      toast({
+        title: "Rate Limited",
+        description: "Too many failed attempts. Please wait before trying again.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    if (!validateInput(email, password)) return;
+
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('Signin error:', error);
+        setLoginAttempts(prev => prev + 1);
+        addAlert('error', `Login failed: ${error.message}`);
+        logSecurityEvent('LOGIN_FAILED', { email, error: error.message });
+        
+        toast({
+          title: "Sign In Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        logSecurityEvent('LOGIN_SUCCESS', { email });
+        setLoginAttempts(0);
+        toast({
+          title: "Welcome Back!",
+          description: "You have successfully signed in.",
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected signin error:', error);
+      setLoginAttempts(prev => prev + 1);
+      toast({
+        title: "Unexpected Error",
+        description: "An unexpected error occurred during sign in.",
+        variant: "destructive",
+      });
+    }
+    
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
-      {/* Enhanced Background with 3D Effects */}
-      <div className="absolute inset-0">
-        <div className="morphing-shape w-96 h-96 top-1/4 left-1/4"></div>
-        <div className="morphing-shape w-80 h-80 bottom-1/4 right-1/4" style={{animationDelay: '3s'}}></div>
-      </div>
-
-      {/* Floating Particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              animationDelay: Math.random() * 8 + 's'
-            }}
-          />
-        ))}
-      </div>
-
-      <Card className="w-full max-w-md bg-slate-800/95 backdrop-blur-xl border-2 border-purple-400/50 relative z-10 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg"></div>
-        <div className="absolute inset-[1px] bg-slate-800/98 backdrop-blur-xl rounded-lg"></div>
-        
-        <CardHeader className="text-center relative z-10">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center neon-glow floating-element">
-              <Brain size={32} className="text-white" />
-            </div>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <Card className="w-full max-w-md p-8 bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-purple-gradient rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow-purple">
+            <BookOpen size={32} className="text-white" />
           </div>
-          <CardTitle className="text-3xl font-bold text-gradient font-space">
-            Welcome to Speedy Study
-          </CardTitle>
-          <p className="text-slate-300 mt-2">DGC-AI Powered Learning Platform</p>
-        </CardHeader>
-        <CardContent className="relative z-10">
-          {/* Validation Errors */}
-          {validationErrors.length > 0 && (
-            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                <AlertTriangle size={16} className="text-red-400" />
-                <span className="text-red-400 font-medium">Please fix the following:</span>
-              </div>
-              <ul className="text-sm text-red-300 space-y-1">
-                {validationErrors.map((error, index) => (
-                  <li key={index}>• {error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {isLogin ? 'Welcome Back' : 'Create Account'}
+          </h1>
+          <p className="text-slate-300">
+            {isLogin ? 'Sign in to continue learning' : 'Start your learning journey today'}
+          </p>
+        </div>
 
-          {/* Rate Limit Warning */}
-          {rateLimited && (
-            <div className="mb-4 p-3 bg-orange-500/20 border border-orange-500/50 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <AlertTriangle size={16} className="text-orange-400" />
-                <span className="text-orange-400 text-sm">Account temporarily locked due to multiple failed attempts</span>
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-slate-200">Full Name</Label>
+        <form onSubmit={isLogin ? handleSignIn : handleSignUp} className="space-y-6">
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
                 <Input
-                  id="fullName"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  maxLength={100}
-                  required
-                  className="bg-slate-700/60 border-slate-500 text-white placeholder-slate-300 focus:border-purple-400 focus:bg-slate-700/80"
+                  className="pl-10 bg-slate-700/80 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500"
+                  placeholder="Enter your full name"
+                  required={!isLogin}
                 />
               </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-200">Email</Label>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
               <Input
-                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                maxLength={254}
+                className="pl-10 bg-slate-700/80 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500"
+                placeholder="Enter your email"
                 required
-                className="bg-slate-700/60 border-slate-500 text-white placeholder-slate-300 focus:border-purple-400 focus:bg-slate-700/80"
               />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-200">Password</Label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
               <Input
-                id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                maxLength={128}
+                className="pl-10 pr-10 bg-slate-700/80 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500"
+                placeholder="Enter your password"
                 required
-                className="bg-slate-700/60 border-slate-500 text-white placeholder-slate-300 focus:border-purple-400 focus:bg-slate-700/80"
               />
-              {!isLogin && (
-                <p className="text-xs text-slate-400">
-                  Password must be at least 8 characters with uppercase, lowercase, and numbers
-                </p>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
-
-            <Button
-              type="submit"
-              disabled={loading || rateLimited}
-              className="w-full btn-3d text-white py-3 text-lg rounded-xl disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Processing...</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Sparkles size={20} />
-                  <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
-                </div>
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-purple-300 hover:text-purple-200 transition-colors"
-            >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-            </button>
           </div>
 
-          <div className="mt-6">
-            <Link to="/" className="flex items-center justify-center space-x-2 text-slate-300 hover:text-purple-300 transition-colors">
-              <ArrowLeft size={16} />
-              <span>Back to Home</span>
-            </Link>
-          </div>
-        </CardContent>
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pl-10 bg-slate-700/80 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500"
+                  placeholder="Confirm your password"
+                  required={!isLogin}
+                />
+              </div>
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full btn-3d bg-purple-gradient hover:opacity-90 text-white py-3 text-lg rounded-xl shadow-glow-purple"
+          >
+            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setEmail('');
+              setPassword('');
+              setConfirmPassword('');
+              setFullName('');
+              setLoginAttempts(0);
+            }}
+            className="text-purple-400 hover:text-purple-300 transition-colors"
+          >
+            {isLogin 
+              ? "Don't have an account? Sign up" 
+              : "Already have an account? Sign in"
+            }
+          </button>
+        </div>
       </Card>
-
-      <CongratulationsPopup
-        isOpen={showCongrats}
-        onClose={handleCongratulationsClose}
-        type="login"
-      />
     </div>
   );
 };

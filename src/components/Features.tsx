@@ -1,135 +1,115 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Upload, Brain, Target, Sparkles, Zap, Globe, Github, Linkedin } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Upload, Brain, Target, BookOpen, BarChart3, Clock, Shield, Zap } from 'lucide-react';
 
 const Features = () => {
   const features = [
     {
-      icon: <Upload className="w-8 h-8 text-purple-400" />,
-      title: "Smart Document Upload",
-      description: "Upload PDFs, Word docs, images, and more. Our AI instantly processes any format.",
-      gradient: "from-purple-500 to-pink-500"
+      icon: Upload,
+      title: "Easy Upload",
+      description: "Support for multiple file formats including PDF, Word documents, PowerPoint, and text files.",
+      gradient: "bg-blue-gradient",
+      shadowColor: "shadow-glow-blue"
     },
     {
-      icon: <Brain className="w-8 h-8 text-blue-400" />,
-      title: "AI-Powered Analysis",
-      description: "Advanced algorithms extract key concepts and generate comprehensive summaries.",
-      gradient: "from-blue-500 to-cyan-500"
+      icon: Brain,
+      title: "AI Processing",
+      description: "Advanced natural language processing extracts key concepts and creates structured learning content.",
+      gradient: "bg-purple-gradient",
+      shadowColor: "shadow-glow-purple"
     },
     {
-      icon: <Target className="w-8 h-8 text-green-400" />,
-      title: "Interactive Quizzes",
-      description: "Personalized quizzes that adapt to your learning style and knowledge level.",
-      gradient: "from-green-500 to-emerald-500"
+      icon: Target,
+      title: "Adaptive Quizzes",
+      description: "Intelligent quiz generation that adapts to your knowledge level and learning progress.",
+      gradient: "bg-pink-gradient",
+      shadowColor: "shadow-glow-pink"
     },
     {
-      icon: <Sparkles className="w-8 h-8 text-yellow-400" />,
-      title: "Instant Insights",
-      description: "Get immediate feedback and explanations to accelerate your understanding.",
-      gradient: "from-yellow-500 to-orange-500"
+      icon: BookOpen,
+      title: "Interactive Study",
+      description: "Engaging study materials with highlights, summaries, and interactive elements.",
+      gradient: "bg-green-gradient",
+      shadowColor: "shadow-glow-green"
     },
     {
-      icon: <Zap className="w-8 h-8 text-red-400" />,
-      title: "Lightning Fast",
-      description: "Process documents and generate quizzes in seconds, not hours.",
-      gradient: "from-red-500 to-pink-500"
+      icon: BarChart3,
+      title: "Progress Analytics",
+      description: "Detailed insights into your learning patterns, strengths, and areas for improvement.",
+      gradient: "bg-orange-gradient",
+      shadowColor: "shadow-glow-orange"
     },
     {
-      icon: <Globe className="w-8 h-8 text-indigo-400" />,
-      title: "Multi-Language Support",
-      description: "Learn in your preferred language with our global AI understanding.",
-      gradient: "from-indigo-500 to-purple-500"
+      icon: Clock,
+      title: "Time Efficient",
+      description: "Optimize your study time with AI-driven recommendations and focused learning paths.",
+      gradient: "bg-teal-gradient",
+      shadowColor: "shadow-glow-teal"
+    },
+    {
+      icon: Shield,
+      title: "Secure & Private",
+      description: "Your documents and learning data are protected with enterprise-grade security measures.",
+      gradient: "bg-red-gradient",
+      shadowColor: "shadow-glow-red"
+    },
+    {
+      icon: Zap,
+      title: "Instant Results",
+      description: "Get immediate feedback and results to accelerate your learning journey.",
+      gradient: "bg-yellow-gradient",
+      shadowColor: "shadow-glow-yellow"
     }
   ];
 
   return (
-    <section className="py-20 px-6 bg-slate-900/50 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0">
-        <div className="morphing-shape w-72 h-72 top-10 right-10" style={{animationDelay: '1s'}}></div>
-        <div className="morphing-shape w-60 h-60 bottom-20 left-20" style={{animationDelay: '3s'}}></div>
-      </div>
-
-      <div className="container mx-auto relative z-10">
+    <section id="features" className="py-20 px-6 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="container mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-gradient mb-6 font-space">
-            Powerful Features for Accelerated Learning
+          <h2 className="text-5xl font-bold mb-6 text-white font-space">
+            Powerful Features for
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+              Accelerated Learning
+            </span>
           </h2>
-          <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-            Experience the future of education with our cutting-edge AI technology designed to transform how you learn.
+          <p className="text-xl text-slate-200 max-w-3xl mx-auto">
+            Our platform combines cutting-edge AI technology with proven learning methodologies 
+            to create the most effective study experience possible.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="bg-slate-800/80 backdrop-blur-xl border border-slate-600/50 hover-lift group relative overflow-hidden">
-              {/* Gradient border effect */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-20 group-hover:opacity-30 transition-opacity duration-300`}></div>
-              <div className="absolute inset-[1px] bg-slate-800/90 backdrop-blur-xl rounded-lg"></div>
+            <Card 
+              key={index} 
+              className="group bg-slate-800/80 backdrop-blur-xl border border-slate-600/50 p-6 hover-lift shadow-2xl relative overflow-hidden transition-all duration-500"
+            >
+              {/* Background gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
-              <CardContent className="p-8 relative z-10">
-                <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl`}>
-                  {feature.icon}
+              <div className="relative z-10">
+                <div className={`w-14 h-14 ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 ${feature.shadowColor} group-hover:scale-110 transition-transform duration-300`}>
+                  <feature.icon size={28} className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4 group-hover:text-gradient transition-all duration-300">{feature.title}</h3>
-                <p className="text-slate-300 leading-relaxed group-hover:text-slate-200 transition-colors duration-300">{feature.description}</p>
-              </CardContent>
+                
+                <h3 className="text-xl font-semibold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                  {feature.title}
+                </h3>
+                
+                <p className="text-slate-300 leading-relaxed group-hover:text-slate-200 transition-colors">
+                  {feature.description}
+                </p>
+              </div>
             </Card>
           ))}
         </div>
 
-        {/* Credits Section */}
-        <div className="text-center py-16 border-t border-slate-700/50">
-          <h3 className="text-3xl font-bold text-gradient mb-8 font-space">
-            Built with ❤️ by Amazing Developers
-          </h3>
-          <div className="flex flex-col md:flex-row justify-center items-center space-y-6 md:space-y-0 md:space-x-12">
-            <div className="glass-card-dark p-6 rounded-2xl border border-purple-500/30 hover-lift">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center neon-glow">
-                  <span className="text-white font-bold text-xl">G</span>
-                </div>
-                <div>
-                  <h4 className="text-xl font-bold text-slate-200">Gopichand</h4>
-                  <p className="text-slate-400">Full Stack Developer</p>
-                  <a 
-                    href="https://www.linkedin.com/in/gopichand-dandimeni-269709287/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors mt-2"
-                  >
-                    <Linkedin size={16} />
-                    <span>LinkedIn Profile</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div className="glass-card-dark p-6 rounded-2xl border border-pink-500/30 hover-lift">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-blue-500 rounded-full flex items-center justify-center neon-glow">
-                  <span className="text-white font-bold text-xl">P</span>
-                </div>
-                <div>
-                  <h4 className="text-xl font-bold text-slate-200">Priyanka</h4>
-                  <p className="text-slate-400">Frontend Developer</p>
-                  <a 
-                    href="http://www.linkedin.com/in/priyankagara" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-2 text-pink-400 hover:text-pink-300 transition-colors mt-2"
-                  >
-                    <Linkedin size={16} />
-                    <span>LinkedIn Profile</span>
-                  </a>
-                </div>
-              </div>
-            </div>
+        <div className="mt-16 text-center">
+          <div className="inline-flex items-center space-x-2 bg-purple-500/20 rounded-full px-6 py-3 border border-purple-500/30">
+            <Shield size={20} className="text-purple-400" />
+            <span className="text-purple-300 font-medium">Built by Sony Education Technologies</span>
           </div>
-          <p className="text-slate-400 mt-8 text-lg">
-            Passionate about creating innovative educational technology solutions
-          </p>
         </div>
       </div>
     </section>
