@@ -79,26 +79,26 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
-      case 'beginner': return 'bg-green-100 text-green-800 border-green-200';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'advanced': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'beginner': return 'bg-green-900/50 text-green-300 border-green-600';
+      case 'intermediate': return 'bg-yellow-900/50 text-yellow-300 border-yellow-600';
+      case 'advanced': return 'bg-red-900/50 text-red-300 border-red-600';
+      default: return 'bg-slate-700/50 text-slate-300 border-slate-600';
     }
   };
 
   return (
-    <Card className="bg-white/95 backdrop-blur-sm border-blue-100 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
+    <Card className="glass-card border-slate-700/50">
+      <CardHeader className="bg-gradient-to-r from-slate-800/50 to-slate-700/50">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
               <FileText size={24} className="text-white" />
             </div>
-            <span className="text-gray-800">AI-Generated Summary</span>
+            <span className="text-slate-100">AI-Generated Summary</span>
           </CardTitle>
           <div className="flex space-x-2">
             {summaryData.documentType && (
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Badge variant="outline" className="bg-slate-800/50 text-purple-300 border-purple-500/50">
                 {summaryData.documentType}
               </Badge>
             )}
@@ -113,20 +113,20 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
 
       <CardContent className="p-0">
         <Tabs defaultValue="detailed" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 m-4 bg-blue-50">
-            <TabsTrigger value="detailed" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-4 m-4 bg-slate-800/50">
+            <TabsTrigger value="detailed" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300">
               <BookOpen size={16} className="mr-2" />
               Detailed
             </TabsTrigger>
-            <TabsTrigger value="brief" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <TabsTrigger value="brief" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300">
               <FileText size={16} className="mr-2" />
               Brief
             </TabsTrigger>
-            <TabsTrigger value="keypoints" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <TabsTrigger value="keypoints" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300">
               <List size={16} className="mr-2" />
               Key Points
             </TabsTrigger>
-            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300">
               <Lightbulb size={16} className="mr-2" />
               Overview
             </TabsTrigger>
@@ -134,14 +134,14 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
 
           <div className="px-6 pb-6">
             <TabsContent value="detailed" className="space-y-4 mt-0">
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
+              <div className="bg-gradient-to-r from-slate-800/30 to-slate-700/30 p-6 rounded-lg border border-slate-600/30">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">Detailed Summary</h3>
+                  <h3 className="text-xl font-bold text-slate-100">Detailed Summary</h3>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(summaryData.detailed, 'Detailed Summary')}
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                    className="border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200"
                   >
                     {copiedSection === 'Detailed Summary' ? (
                       <Check size={16} className="mr-2" />
@@ -151,19 +151,19 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
                     Copy
                   </Button>
                 </div>
-                <p className="text-gray-700 leading-relaxed text-lg">{summaryData.detailed}</p>
+                <p className="text-slate-300 leading-relaxed text-lg">{summaryData.detailed}</p>
               </div>
             </TabsContent>
 
             <TabsContent value="brief" className="space-y-4 mt-0">
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg">
+              <div className="bg-gradient-to-r from-slate-800/30 to-slate-700/30 p-6 rounded-lg border border-slate-600/30">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">Brief Summary</h3>
+                  <h3 className="text-xl font-bold text-slate-100">Brief Summary</h3>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(summaryData.brief, 'Brief Summary')}
-                    className="border-green-200 text-green-700 hover:bg-green-50"
+                    className="border-green-500/50 text-green-300 hover:bg-green-600/20 hover:text-green-200"
                   >
                     {copiedSection === 'Brief Summary' ? (
                       <Check size={16} className="mr-2" />
@@ -173,19 +173,19 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
                     Copy
                   </Button>
                 </div>
-                <p className="text-gray-700 leading-relaxed text-lg">{summaryData.brief}</p>
+                <p className="text-slate-300 leading-relaxed text-lg">{summaryData.brief}</p>
               </div>
             </TabsContent>
 
             <TabsContent value="keypoints" className="space-y-4 mt-0">
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-lg">
+              <div className="bg-gradient-to-r from-slate-800/30 to-slate-700/30 p-6 rounded-lg border border-slate-600/30">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">Key Points</h3>
+                  <h3 className="text-xl font-bold text-slate-100">Key Points</h3>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(summaryData.keyPoints.join('\n• '), 'Key Points')}
-                    className="border-amber-200 text-amber-700 hover:bg-amber-50"
+                    className="border-amber-500/50 text-amber-300 hover:bg-amber-600/20 hover:text-amber-200"
                   >
                     {copiedSection === 'Key Points' ? (
                       <Check size={16} className="mr-2" />
@@ -198,10 +198,10 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
                 <ul className="space-y-3">
                   {summaryData.keyPoints.map((point, index) => (
                     <li key={index} className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                         <span className="text-white text-sm font-bold">{index + 1}</span>
                       </div>
-                      <span className="text-gray-700 leading-relaxed">{point}</span>
+                      <span className="text-slate-300 leading-relaxed">{point}</span>
                     </li>
                   ))}
                 </ul>
@@ -209,18 +209,18 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
             </TabsContent>
 
             <TabsContent value="overview" className="space-y-4 mt-0">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Document Overview</h3>
+              <div className="bg-gradient-to-r from-slate-800/30 to-slate-700/30 p-6 rounded-lg border border-slate-600/30">
+                <h3 className="text-xl font-bold text-slate-100 mb-4">Document Overview</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">Main Topics</h4>
-                    <p className="text-gray-700">{summaryData.mainTopics}</p>
+                    <h4 className="font-semibold text-slate-200 mb-2">Main Topics</h4>
+                    <p className="text-slate-300">{summaryData.mainTopics}</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">Document Classification</h4>
+                    <h4 className="font-semibold text-slate-200 mb-2">Document Classification</h4>
                     <div className="space-y-1">
-                      <p className="text-gray-700">Type: <span className="font-medium">{summaryData.documentType}</span></p>
-                      <p className="text-gray-700">Difficulty: <span className="font-medium">{summaryData.difficulty}</span></p>
+                      <p className="text-slate-300">Type: <span className="font-medium text-purple-300">{summaryData.documentType}</span></p>
+                      <p className="text-slate-300">Difficulty: <span className="font-medium text-purple-300">{summaryData.difficulty}</span></p>
                     </div>
                   </div>
                 </div>

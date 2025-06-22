@@ -45,12 +45,33 @@ const DocumentViewer = () => {
   const [document, setDocument] = useState<Document | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
+  const [autoGenerating, setAutoGenerating] = useState(false);
 
   useEffect(() => {
     if (id && user) {
       fetchDocumentData();
     }
   }, [id, user]);
+
+  // Auto-generate summary if document is processed but has no summary
+  useEffect(() => {
+    const autoGenerateSummary = async () => {
+      if (document && document.processed && !document.summary && !autoGenerating && document.content) {
+        console.log('Auto-generating summary for document:', document.title);
+        setAutoGenerating(true);
+        try {
+          await generateSummaryAndQuiz(document.id, document.content, document.title, document.file_size);
+          await fetchDocumentData(); // Refresh data
+        } catch (error) {
+          console.error('Auto-generation failed:', error);
+        } finally {
+          setAutoGenerating(false);
+        }
+      }
+    };
+
+    autoGenerateSummary();
+  }, [document, autoGenerating]);
 
   const fetchDocumentData = async () => {
     try {
@@ -114,14 +135,12 @@ const DocumentViewer = () => {
     if (!document) return;
 
     try {
-      const result = await generateSummaryAndQuiz(
+      await generateSummaryAndQuiz(
         document.id,
         document.content || document.title,
         document.title,
         document.file_size
       );
-
-      // Refresh the document data
       await fetchDocumentData();
     } catch (error) {
       console.error('Error regenerating summary:', error);
@@ -130,12 +149,12 @@ const DocumentViewer = () => {
 
   if (loading) {
     return (
-      <div className="pt-28 pb-20 px-6 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="pt-28 pb-20 px-6 min-h-screen bg-slate-900">
         <div className="container mx-auto max-w-6xl">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
-              <p className="text-gray-600">Loading document...</p>
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-400" />
+              <p className="text-slate-300">Loading document...</p>
             </div>
           </div>
         </div>
@@ -145,13 +164,13 @@ const DocumentViewer = () => {
 
   if (!document) {
     return (
-      <div className="pt-28 pb-20 px-6 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="pt-28 pb-20 px-6 min-h-screen bg-slate-900">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Document Not Found</h1>
-            <p className="text-gray-600 mb-8">The document you're looking for doesn't exist or you don't have access to it.</p>
+            <h1 className="text-2xl font-bold text-slate-100 mb-4">Document Not Found</h1>
+            <p className="text-slate-400 mb-8">The document you're looking for doesn't exist or you don't have access to it.</p>
             <Link to="/dashboard">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
                 <ArrowLeft size={20} className="mr-2" />
                 Back to Dashboard
               </Button>
@@ -162,19 +181,22 @@ const DocumentViewer = () => {
     );
   }
 
+  const isGenerating = generatingSummary || autoGenerating;
+  const showGenerateButton = document.processed && !document.summary && !isGenerating;
+
   return (
-    <div className="pt-28 pb-20 px-6 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="pt-28 pb-20 px-6 min-h-screen bg-slate-900">
       <div className="container mx-auto max-w-6xl">
         <div className="flex items-center space-x-4 mb-8">
           <Link to="/dashboard">
-            <Button variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+            <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white">
               <ArrowLeft size={20} className="mr-2" />
               Back to Dashboard
             </Button>
           </Link>
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">{document.title}</h1>
-            <p className="text-gray-600">
+            <h1 className="text-4xl font-bold text-slate-100 mb-2">{document.title}</h1>
+            <p className="text-slate-400">
               {document.file_name} • {(document.file_size / 1024 / 1024).toFixed(2)} MB • 
               Uploaded {new Date(document.upload_date).toLocaleDateString()}
             </p>
@@ -188,35 +210,33 @@ const DocumentViewer = () => {
             {document.summary ? (
               <SummaryDisplay summary={document.summary} title={document.title} />
             ) : (
-              <Card className="bg-white/90 backdrop-blur-sm border-blue-100 shadow-lg p-8">
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Lightbulb size={32} className="text-white" />
+              <Card className="glass-card border-slate-700/50">
+                <div className="text-center py-8 p-8">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    {isGenerating ? (
+                      <Loader2 size={32} className="text-white animate-spin" />
+                    ) : (
+                      <Lightbulb size={32} className="text-white" />
+                    )}
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4">No Summary Available</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold text-slate-100 mb-4">
+                    {isGenerating ? 'Generating AI Summary...' : 'No Summary Available'}
+                  </h3>
+                  <p className="text-slate-400 mb-6">
                     {!document.processed 
                       ? "This document is still being processed. The summary will be available shortly."
-                      : "Generate a comprehensive AI summary with detailed analysis, key points, and quiz questions."
+                      : isGenerating
+                      ? "Our AI is analyzing your document and creating a comprehensive summary with quiz questions..."
+                      : "Generate a comprehensive AI summary with detailed analysis, key points, and custom quiz questions based on your document content."
                     }
                   </p>
-                  {document.processed && (
+                  {showGenerateButton && (
                     <Button
                       onClick={handleRegenerateSummary}
-                      disabled={generatingSummary}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
                     >
-                      {generatingSummary ? (
-                        <>
-                          <Loader2 size={20} className="mr-2 animate-spin" />
-                          Generating Summary...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw size={20} className="mr-2" />
-                          Generate AI Summary
-                        </>
-                      )}
+                      <RefreshCw size={20} className="mr-2" />
+                      Generate AI Summary
                     </Button>
                   )}
                 </div>
@@ -226,8 +246,8 @@ const DocumentViewer = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="bg-white/90 backdrop-blur-sm border-blue-100 shadow-lg p-6">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">Quick Actions</h3>
+            <Card className="glass-card border-slate-700/50 p-6">
+              <h3 className="text-xl font-bold mb-4 text-slate-100">Quick Actions</h3>
               <div className="space-y-3">
                 {quiz ? (
                   <Link to={`/quiz/${id}`} className="block">
@@ -239,11 +259,11 @@ const DocumentViewer = () => {
                 ) : (
                   <Button 
                     onClick={handleRegenerateSummary}
-                    disabled={generatingSummary || !document.processed}
+                    disabled={isGenerating || !document.processed}
                     className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg disabled:opacity-50"
                   >
                     <Target size={20} className="mr-2" />
-                    {generatingSummary ? 'Generating Quiz...' : 'Generate Quiz'}
+                    {isGenerating ? 'Generating Quiz...' : 'Generate Quiz'}
                   </Button>
                 )}
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg">
@@ -253,36 +273,36 @@ const DocumentViewer = () => {
               </div>
             </Card>
 
-            <Card className="bg-white/90 backdrop-blur-sm border-blue-100 shadow-lg p-6">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">Document Stats</h3>
+            <Card className="glass-card border-slate-700/50 p-6">
+              <h3 className="text-xl font-bold mb-4 text-slate-100">Document Stats</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">File Size:</span>
-                  <span className="font-medium">{(document.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                  <span className="text-slate-400">File Size:</span>
+                  <span className="font-medium text-slate-300">{(document.file_size / 1024 / 1024).toFixed(2)} MB</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
+                  <span className="text-slate-400">Status:</span>
                   <Badge variant={document.processed ? "default" : "secondary"}>
                     {document.processed ? "Processed" : "Processing"}
                   </Badge>
                 </div>
                 {quiz && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Quiz Questions:</span>
-                    <span className="font-medium">{quiz.questions?.length || 0}</span>
+                    <span className="text-slate-400">Quiz Questions:</span>
+                    <span className="font-medium text-slate-300">{quiz.questions?.length || 0}</span>
                   </div>
                 )}
               </div>
             </Card>
 
-            <Card className="bg-white/90 backdrop-blur-sm border-blue-100 shadow-lg p-6">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">Learning Tips</h3>
+            <Card className="glass-card border-slate-700/50 p-6">
+              <h3 className="text-xl font-bold mb-4 text-slate-100">Learning Tips</h3>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Lightbulb size={16} className="text-white" />
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-slate-400">
                     Read the detailed summary first for comprehensive understanding
                   </p>
                 </div>
@@ -290,7 +310,7 @@ const DocumentViewer = () => {
                   <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Lightbulb size={16} className="text-white" />
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-slate-400">
                     Use key points for quick review and memorization
                   </p>
                 </div>
@@ -298,8 +318,8 @@ const DocumentViewer = () => {
                   <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Lightbulb size={16} className="text-white" />
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Take the quiz to test your understanding
+                  <p className="text-sm text-slate-400">
+                    Take the quiz to test your understanding of this specific document
                   </p>
                 </div>
               </div>

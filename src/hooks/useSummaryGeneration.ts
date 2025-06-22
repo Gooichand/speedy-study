@@ -28,25 +28,39 @@ export const useSummaryGeneration = () => {
   const generateSummaryAndQuiz = async (documentId: string, content: string, title: string, fileSize: number) => {
     try {
       setLoading(true);
+      console.log('Starting summary generation for:', title);
+
+      // Validate inputs
+      if (!content || content.trim().length === 0) {
+        throw new Error('Document content is empty or not available');
+      }
 
       // Call the edge function to generate summary and quiz
       const { data, error } = await supabase.functions.invoke('generate-summary', {
         body: {
-          content,
+          content: content.trim(),
           title,
           fileSize
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate summary');
+      if (!data || !data.success) {
+        throw new Error(data?.error || 'Failed to generate summary and quiz');
       }
 
       const { summary, quiz } = data;
 
-      // Update document with comprehensive summary
+      // Validate the response data
+      if (!summary || !quiz) {
+        throw new Error('Invalid response from AI service');
+      }
+
+      // Create comprehensive summary text with proper formatting
       const summaryText = `
 ## Detailed Summary
 ${summary.longSummary}
@@ -65,6 +79,7 @@ Type: ${summary.documentType}
 Difficulty: ${summary.difficulty}
       `.trim();
 
+      // Update document with summary and mark as processed
       const { error: updateError } = await supabase
         .from('documents')
         .update({ 
@@ -73,31 +88,53 @@ Difficulty: ${summary.difficulty}
         })
         .eq('id', documentId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw updateError;
+      }
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
       // Create or update quiz
       const { error: quizError } = await supabase
         .from('quizzes')
         .upsert({
           document_id: documentId,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.id,
           questions: quiz
+        }, {
+          onConflict: 'document_id,user_id'
         });
 
-      if (quizError) throw quizError;
+      if (quizError) {
+        console.error('Quiz creation error:', quizError);
+        throw quizError;
+      }
 
       toast({
         title: "Success!",
-        description: `Generated comprehensive summary and ${quiz.length} quiz questions`,
+        description: `Generated comprehensive summary and ${quiz.length} quiz questions for "${title}"`,
       });
 
+      console.log('Successfully completed summary generation for:', title);
       return { summary, quiz };
 
     } catch (error) {
       console.error('Error generating summary and quiz:', error);
+      
+      // Mark document as processed even if AI generation fails
+      await supabase
+        .from('documents')
+        .update({ processed: true })
+        .eq('id', documentId);
+
       toast({
         title: "Error",
-        description: "Failed to generate summary and quiz. Please try again.",
+        description: error.message || "Failed to generate summary and quiz. Please try again.",
         variant: "destructive"
       });
       throw error;
