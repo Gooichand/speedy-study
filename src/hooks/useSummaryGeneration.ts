@@ -28,17 +28,23 @@ export const useSummaryGeneration = () => {
   const generateSummaryAndQuiz = async (documentId: string, content: string, title: string, fileSize: number) => {
     try {
       setLoading(true);
-      console.log('Starting summary generation for:', title);
+      console.log('Starting summary generation for:', title, 'Content length:', content?.length);
 
       // Validate inputs
       if (!content || content.trim().length === 0) {
         throw new Error('Document content is empty or not available');
       }
 
+      // Ensure we have substantial content for AI analysis
+      const trimmedContent = content.trim();
+      if (trimmedContent.length < 50) {
+        throw new Error('Document content is too short for meaningful analysis');
+      }
+
       // Call the edge function to generate summary and quiz
       const { data, error } = await supabase.functions.invoke('generate-summary', {
         body: {
-          content: content.trim(),
+          content: trimmedContent,
           title,
           fileSize
         }
@@ -53,12 +59,14 @@ export const useSummaryGeneration = () => {
         throw new Error(data?.error || 'Failed to generate summary and quiz');
       }
 
-      const { summary, quiz } = data;
+      const { summary, quiz, documentHash } = data;
 
       // Validate the response data
       if (!summary || !quiz) {
         throw new Error('Invalid response from AI service');
       }
+
+      console.log('Generated content with hash:', documentHash, 'Quiz questions:', quiz.length);
 
       // Create comprehensive summary text with proper formatting
       const summaryText = `
@@ -99,7 +107,7 @@ Difficulty: ${summary.difficulty}
         throw new Error('User not authenticated');
       }
 
-      // Create or update quiz
+      // Create or update quiz with document-specific content
       const { error: quizError } = await supabase
         .from('quizzes')
         .upsert({
@@ -117,10 +125,10 @@ Difficulty: ${summary.difficulty}
 
       toast({
         title: "Success!",
-        description: `Generated comprehensive summary and ${quiz.length} quiz questions for "${title}"`,
+        description: `Generated unique summary and ${quiz.length} custom quiz questions for "${title}"`,
       });
 
-      console.log('Successfully completed summary generation for:', title);
+      console.log('Successfully completed summary generation for:', title, 'Hash:', documentHash);
       return { summary, quiz };
 
     } catch (error) {

@@ -79,10 +79,10 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
-      case 'beginner': return 'bg-green-900/50 text-green-300 border-green-600';
-      case 'intermediate': return 'bg-yellow-900/50 text-yellow-300 border-yellow-600';
-      case 'advanced': return 'bg-red-900/50 text-red-300 border-red-600';
-      default: return 'bg-slate-700/50 text-slate-300 border-slate-600';
+      case 'beginner': return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
+      case 'intermediate': return 'bg-amber-500/20 text-amber-300 border-amber-500/50';
+      case 'advanced': return 'bg-red-500/20 text-red-300 border-red-500/50';
+      default: return 'bg-slate-500/20 text-slate-300 border-slate-500/50';
     }
   };
 
@@ -98,7 +98,7 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
           </CardTitle>
           <div className="flex space-x-2">
             {summaryData.documentType && (
-              <Badge variant="outline" className="bg-slate-800/50 text-purple-300 border-purple-500/50">
+              <Badge variant="outline" className="bg-purple-500/20 text-purple-300 border-purple-500/50">
                 {summaryData.documentType}
               </Badge>
             )}
@@ -141,7 +141,7 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
                     variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(summaryData.detailed, 'Detailed Summary')}
-                    className="border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200"
+                    className="bg-slate-800/50 border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200"
                   >
                     {copiedSection === 'Detailed Summary' ? (
                       <Check size={16} className="mr-2" />
@@ -163,7 +163,7 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
                     variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(summaryData.brief, 'Brief Summary')}
-                    className="border-green-500/50 text-green-300 hover:bg-green-600/20 hover:text-green-200"
+                    className="bg-slate-800/50 border-emerald-500/50 text-emerald-300 hover:bg-emerald-600/20 hover:text-emerald-200"
                   >
                     {copiedSection === 'Brief Summary' ? (
                       <Check size={16} className="mr-2" />
@@ -185,7 +185,7 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
                     variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(summaryData.keyPoints.join('\n• '), 'Key Points')}
-                    className="border-amber-500/50 text-amber-300 hover:bg-amber-600/20 hover:text-amber-200"
+                    className="bg-slate-800/50 border-amber-500/50 text-amber-300 hover:bg-amber-600/20 hover:text-amber-200"
                   >
                     {copiedSection === 'Key Points' ? (
                       <Check size={16} className="mr-2" />

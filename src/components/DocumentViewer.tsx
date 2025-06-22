@@ -170,7 +170,7 @@ const DocumentViewer = () => {
             <h1 className="text-2xl font-bold text-slate-100 mb-4">Document Not Found</h1>
             <p className="text-slate-400 mb-8">The document you're looking for doesn't exist or you don't have access to it.</p>
             <Link to="/dashboard">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg">
                 <ArrowLeft size={20} className="mr-2" />
                 Back to Dashboard
               </Button>
@@ -189,7 +189,7 @@ const DocumentViewer = () => {
       <div className="container mx-auto max-w-6xl">
         <div className="flex items-center space-x-4 mb-8">
           <Link to="/dashboard">
-            <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white">
+            <Button variant="outline" className="bg-slate-800/50 border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400">
               <ArrowLeft size={20} className="mr-2" />
               Back to Dashboard
             </Button>
@@ -282,7 +282,7 @@ const DocumentViewer = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Status:</span>
-                  <Badge variant={document.processed ? "default" : "secondary"}>
+                  <Badge variant={document.processed ? "default" : "secondary"} className="bg-purple-600/20 text-purple-300 border-purple-500/50">
                     {document.processed ? "Processed" : "Processing"}
                   </Badge>
                 </div>
@@ -299,7 +299,7 @@ const DocumentViewer = () => {
               <h3 className="text-xl font-bold mb-4 text-slate-100">Learning Tips</h3>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Lightbulb size={16} className="text-white" />
                   </div>
                   <p className="text-sm text-slate-400">
@@ -307,7 +307,7 @@ const DocumentViewer = () => {
                   </p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Lightbulb size={16} className="text-white" />
                   </div>
                   <p className="text-sm text-slate-400">
@@ -315,12 +315,40 @@ const DocumentViewer = () => {
                   </p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Lightbulb size={16} className="text-white" />
                   </div>
                   <p className="text-sm text-slate-400">
                     Take the quiz to test your understanding of this specific document
                   </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Attribution Card */}
+            <Card className="glass-card border-slate-700/50 p-6">
+              <h3 className="text-xl font-bold mb-4 text-slate-100">Built By</h3>
+              <div className="space-y-3">
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-purple-300 mb-3">Speedy Study</p>
+                  <div className="space-y-2">
+                    <a 
+                      href="https://www.linkedin.com/in/gopichand-dandimeni-269709287/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="block text-sm text-slate-400 hover:text-purple-300 transition-colors"
+                    >
+                      Gopichand Dandimeni
+                    </a>
+                    <a 
+                      href="http://www.linkedin.com/in/priyankagara" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="block text-sm text-slate-400 hover:text-purple-300 transition-colors"
+                    >
+                      Priyanka Gara
+                    </a>
+                  </div>
                 </div>
               </div>
             </Card>
