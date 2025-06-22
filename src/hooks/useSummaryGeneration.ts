@@ -3,24 +3,6 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface SummaryData {
-  longSummary: string;
-  shortSummary: string;
-  keyPoints: string[];
-  mainTopics: string[];
-  documentType: string;
-  difficulty: string;
-}
-
-interface QuizQuestion {
-  id: number;
-  type: string;
-  question: string;
-  options?: string[];
-  correctAnswer: string;
-  explanation: string;
-}
-
 export const useSummaryGeneration = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -28,66 +10,83 @@ export const useSummaryGeneration = () => {
   const generateSummaryAndQuiz = async (documentId: string, content: string, title: string, fileSize: number) => {
     try {
       setLoading(true);
-      console.log('Starting summary generation for:', title, 'Content length:', content?.length);
+      console.log('Starting summary generation for:', title, 'Content length:', content?.length, 'File size:', fileSize);
 
-      // Validate inputs
-      if (!content || content.trim().length === 0) {
-        throw new Error('Document content is empty or not available');
+      // Enhanced content validation
+      if (!content || typeof content !== 'string' || content.trim().length === 0) {
+        throw new Error('Document content is empty or invalid');
       }
 
-      // Ensure we have substantial content for AI analysis
       const trimmedContent = content.trim();
-      if (trimmedContent.length < 50) {
-        throw new Error('Document content is too short for meaningful analysis');
+      if (trimmedContent.length < 100) {
+        throw new Error('Document content is too short for meaningful analysis (minimum 100 characters required)');
       }
 
-      // Call the edge function to generate summary and quiz
+      // Validate file size
+      if (!fileSize || fileSize <= 0) {
+        console.warn('Invalid file size, using default');
+        fileSize = trimmedContent.length;
+      }
+
+      console.log('Calling edge function with validated content...');
+
+      // Call the edge function
       const { data, error } = await supabase.functions.invoke('generate-summary', {
         body: {
           content: trimmedContent,
-          title,
-          fileSize
+          title: title || 'Untitled Document',
+          fileSize: fileSize
         }
       });
 
       if (error) {
         console.error('Supabase function error:', error);
-        throw error;
+        throw new Error(`Summary generation failed: ${error.message || 'Unknown error'}`);
       }
 
       if (!data || !data.success) {
-        throw new Error(data?.error || 'Failed to generate summary and quiz');
+        const errorMessage = data?.error || 'Failed to generate summary and quiz';
+        console.error('Function returned error:', errorMessage);
+        throw new Error(errorMessage);
       }
 
       const { summary, quiz, documentHash } = data;
 
-      // Validate the response data
-      if (!summary || !quiz) {
-        throw new Error('Invalid response from AI service');
+      // Validate response data
+      if (!summary || !quiz || !Array.isArray(quiz)) {
+        throw new Error('Invalid response format from AI service');
       }
 
-      console.log('Generated content with hash:', documentHash, 'Quiz questions:', quiz.length);
+      if (quiz.length === 0) {
+        throw new Error('No quiz questions were generated');
+      }
 
-      // Create comprehensive summary text with proper formatting
+      console.log('Generated content successfully:', {
+        hash: documentHash,
+        quizQuestions: quiz.length,
+        summaryKeys: Object.keys(summary)
+      });
+
+      // Create formatted summary text
       const summaryText = `
 ## Detailed Summary
-${summary.longSummary}
+${summary.longSummary || 'No detailed summary available'}
 
 ## Brief Summary
-${summary.shortSummary}
+${summary.shortSummary || 'No brief summary available'}
 
 ## Key Points
-${summary.keyPoints.map((point: string) => `• ${point}`).join('\n')}
+${(summary.keyPoints || []).map((point: string) => `• ${point}`).join('\n')}
 
 ## Main Topics
-${summary.mainTopics.join(', ')}
+${(summary.mainTopics || []).join(', ')}
 
 ## Document Classification
-Type: ${summary.documentType}
-Difficulty: ${summary.difficulty}
+Type: ${summary.documentType || 'Unknown'}
+Difficulty: ${summary.difficulty || 'Unknown'}
       `.trim();
 
-      // Update document with summary and mark as processed
+      // Update document with summary
       const { error: updateError } = await supabase
         .from('documents')
         .update({ 
@@ -98,16 +97,16 @@ Difficulty: ${summary.difficulty}
 
       if (updateError) {
         console.error('Database update error:', updateError);
-        throw updateError;
+        throw new Error(`Failed to save summary: ${updateError.message}`);
       }
 
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('User authentication required');
       }
 
-      // Create or update quiz with document-specific content
+      // Save quiz questions
       const { error: quizError } = await supabase
         .from('quizzes')
         .upsert({
@@ -119,32 +118,39 @@ Difficulty: ${summary.difficulty}
         });
 
       if (quizError) {
-        console.error('Quiz creation error:', quizError);
-        throw quizError;
+        console.error('Quiz save error:', quizError);
+        throw new Error(`Failed to save quiz: ${quizError.message}`);
       }
 
       toast({
         title: "Success!",
-        description: `Generated unique summary and ${quiz.length} custom quiz questions for "${title}"`,
+        description: `Generated detailed summary and ${quiz.length} custom quiz questions for "${title}"`,
       });
 
-      console.log('Successfully completed summary generation for:', title, 'Hash:', documentHash);
-      return { summary, quiz };
+      console.log('Summary and quiz generation completed successfully');
+      return { summary, quiz, documentHash };
 
     } catch (error) {
-      console.error('Error generating summary and quiz:', error);
+      console.error('Error in generateSummaryAndQuiz:', error);
       
-      // Mark document as processed even if AI generation fails
-      await supabase
-        .from('documents')
-        .update({ processed: true })
-        .eq('id', documentId);
+      // Mark document as processed to prevent retry loops
+      try {
+        await supabase
+          .from('documents')
+          .update({ processed: true })
+          .eq('id', documentId);
+      } catch (updateError) {
+        console.error('Failed to mark document as processed:', updateError);
+      }
 
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to generate summary and quiz. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
+      
       throw error;
     } finally {
       setLoading(false);

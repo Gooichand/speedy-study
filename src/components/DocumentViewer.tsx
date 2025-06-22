@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Target, ArrowLeft, Lightbulb, Loader2, RefreshCw } from 'lucide-react';
+import { BookOpen, Target, ArrowLeft, Lightbulb, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -61,7 +61,7 @@ const DocumentViewer = () => {
         setAutoGenerating(true);
         try {
           await generateSummaryAndQuiz(document.id, document.content, document.title, document.file_size);
-          await fetchDocumentData(); // Refresh data
+          await fetchDocumentData();
         } catch (error) {
           console.error('Auto-generation failed:', error);
         } finally {
@@ -71,7 +71,7 @@ const DocumentViewer = () => {
     };
 
     autoGenerateSummary();
-  }, [document, autoGenerating]);
+  }, [document, autoGenerating, generateSummaryAndQuiz]);
 
   const fetchDocumentData = async () => {
     try {
@@ -170,7 +170,7 @@ const DocumentViewer = () => {
             <h1 className="text-2xl font-bold text-slate-100 mb-4">Document Not Found</h1>
             <p className="text-slate-400 mb-8">The document you're looking for doesn't exist or you don't have access to it.</p>
             <Link to="/dashboard">
-              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg">
+              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
                 <ArrowLeft size={20} className="mr-2" />
                 Back to Dashboard
               </Button>
@@ -189,7 +189,7 @@ const DocumentViewer = () => {
       <div className="container mx-auto max-w-6xl">
         <div className="flex items-center space-x-4 mb-8">
           <Link to="/dashboard">
-            <Button variant="outline" className="bg-slate-800/50 border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400">
+            <Button variant="outline" className="bg-slate-800/50 border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400 transform hover:scale-105 transition-all duration-200">
               <ArrowLeft size={20} className="mr-2" />
               Back to Dashboard
             </Button>
@@ -210,33 +210,33 @@ const DocumentViewer = () => {
             {document.summary ? (
               <SummaryDisplay summary={document.summary} title={document.title} />
             ) : (
-              <Card className="glass-card border-slate-700/50">
-                <div className="text-center py-8 p-8">
-                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Card className="glass-card border-slate-700/50 shadow-2xl">
+                <div className="text-center py-12 p-8">
+                  <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                     {isGenerating ? (
-                      <Loader2 size={32} className="text-white animate-spin" />
+                      <Loader2 size={36} className="text-white animate-spin" />
                     ) : (
-                      <Lightbulb size={32} className="text-white" />
+                      <Lightbulb size={36} className="text-white" />
                     )}
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-100 mb-4">
-                    {isGenerating ? 'Generating AI Summary...' : 'No Summary Available'}
+                  <h3 className="text-3xl font-bold text-slate-100 mb-4">
+                    {isGenerating ? 'Generating AI Summary...' : 'Ready for AI Analysis'}
                   </h3>
-                  <p className="text-slate-400 mb-6">
+                  <p className="text-slate-400 mb-8 text-lg leading-relaxed max-w-2xl mx-auto">
                     {!document.processed 
-                      ? "This document is still being processed. The summary will be available shortly."
+                      ? "Your document is being processed. The AI analysis will be available shortly."
                       : isGenerating
-                      ? "Our AI is analyzing your document and creating a comprehensive summary with quiz questions..."
-                      : "Generate a comprehensive AI summary with detailed analysis, key points, and custom quiz questions based on your document content."
+                      ? "Our advanced AI is analyzing your document content and creating comprehensive summaries with custom quiz questions tailored specifically to your file..."
+                      : "Generate an intelligent AI summary with detailed analysis, key insights, and personalized quiz questions based on your document's unique content."
                     }
                   </p>
                   {showGenerateButton && (
                     <Button
                       onClick={handleRegenerateSummary}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200 px-8 py-3 text-lg"
                     >
-                      <RefreshCw size={20} className="mr-2" />
-                      Generate AI Summary
+                      <RefreshCw size={24} className="mr-3" />
+                      Generate AI Summary & Quiz
                     </Button>
                   )}
                 </div>
@@ -246,12 +246,12 @@ const DocumentViewer = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="glass-card border-slate-700/50 p-6">
-              <h3 className="text-xl font-bold mb-4 text-slate-100">Quick Actions</h3>
+            <Card className="glass-card border-slate-700/50 p-6 shadow-xl">
+              <h3 className="text-xl font-bold mb-4 text-slate-100">Study Actions</h3>
               <div className="space-y-3">
                 {quiz ? (
                   <Link to={`/quiz/${id}`} className="block">
-                    <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg">
+                    <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
                       <Target size={20} className="mr-2" />
                       Take Quiz ({quiz.questions?.length || 0} questions)
                     </Button>
@@ -260,20 +260,20 @@ const DocumentViewer = () => {
                   <Button 
                     onClick={handleRegenerateSummary}
                     disabled={isGenerating || !document.processed}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
                   >
                     <Target size={20} className="mr-2" />
                     {isGenerating ? 'Generating Quiz...' : 'Generate Quiz'}
                   </Button>
                 )}
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg">
+                <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
                   <BookOpen size={20} className="mr-2" />
                   Study Mode
                 </Button>
               </div>
             </Card>
 
-            <Card className="glass-card border-slate-700/50 p-6">
+            <Card className="glass-card border-slate-700/50 p-6 shadow-xl">
               <h3 className="text-xl font-bold mb-4 text-slate-100">Document Stats</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
@@ -282,41 +282,45 @@ const DocumentViewer = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Status:</span>
-                  <Badge variant={document.processed ? "default" : "secondary"} className="bg-purple-600/20 text-purple-300 border-purple-500/50">
+                  <Badge variant={document.processed ? "default" : "secondary"} className={document.processed ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50" : "bg-amber-500/20 text-amber-300 border-amber-500/50"}>
                     {document.processed ? "Processed" : "Processing"}
                   </Badge>
                 </div>
                 {quiz && (
                   <div className="flex justify-between">
                     <span className="text-slate-400">Quiz Questions:</span>
-                    <span className="font-medium text-slate-300">{quiz.questions?.length || 0}</span>
+                    <span className="font-medium text-purple-300">{quiz.questions?.length || 0}</span>
                   </div>
                 )}
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Upload Date:</span>
+                  <span className="font-medium text-slate-300">{new Date(document.upload_date).toLocaleDateString()}</span>
+                </div>
               </div>
             </Card>
 
-            <Card className="glass-card border-slate-700/50 p-6">
-              <h3 className="text-xl font-bold mb-4 text-slate-100">Learning Tips</h3>
+            <Card className="glass-card border-slate-700/50 p-6 shadow-xl">
+              <h3 className="text-xl font-bold mb-4 text-slate-100">Study Tips</h3>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lightbulb size={16} className="text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-bold">1</span>
                   </div>
                   <p className="text-sm text-slate-400">
-                    Read the detailed summary first for comprehensive understanding
+                    Start with the detailed summary for comprehensive understanding
                   </p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lightbulb size={16} className="text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-bold">2</span>
                   </div>
                   <p className="text-sm text-slate-400">
-                    Use key points for quick review and memorization
+                    Review key points for quick recall and memorization
                   </p>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lightbulb size={16} className="text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-bold">3</span>
                   </div>
                   <p className="text-sm text-slate-400">
                     Take the quiz to test your understanding of this specific document
@@ -326,29 +330,31 @@ const DocumentViewer = () => {
             </Card>
 
             {/* Attribution Card */}
-            <Card className="glass-card border-slate-700/50 p-6">
-              <h3 className="text-xl font-bold mb-4 text-slate-100">Built By</h3>
-              <div className="space-y-3">
-                <div className="text-center">
-                  <p className="text-lg font-semibold text-purple-300 mb-3">Speedy Study</p>
-                  <div className="space-y-2">
-                    <a 
-                      href="https://www.linkedin.com/in/gopichand-dandimeni-269709287/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="block text-sm text-slate-400 hover:text-purple-300 transition-colors"
-                    >
-                      Gopichand Dandimeni
-                    </a>
-                    <a 
-                      href="http://www.linkedin.com/in/priyankagara" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="block text-sm text-slate-400 hover:text-purple-300 transition-colors"
-                    >
-                      Priyanka Gara
-                    </a>
-                  </div>
+            <Card className="glass-card border-slate-700/50 p-6 shadow-xl">
+              <h3 className="text-xl font-bold mb-4 text-slate-100 text-center">Built By</h3>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text mb-4">
+                  Speedy Study
+                </p>
+                <div className="space-y-3">
+                  <a 
+                    href="https://www.linkedin.com/in/gopichand-dandimeni-269709287/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center space-x-2 text-slate-400 hover:text-purple-300 transition-colors p-2 rounded-lg hover:bg-purple-500/10"
+                  >
+                    <span className="font-medium">Gopichand Dandimeni</span>
+                    <ExternalLink size={16} />
+                  </a>
+                  <a 
+                    href="http://www.linkedin.com/in/priyankagara" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center space-x-2 text-slate-400 hover:text-purple-300 transition-colors p-2 rounded-lg hover:bg-purple-500/10"
+                  >
+                    <span className="font-medium">Priyanka Gara</span>
+                    <ExternalLink size={16} />
+                  </a>
                 </div>
               </div>
             </Card>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -80,6 +79,15 @@ const QuizInterface = () => {
         ? quizData.questions as unknown as Question[]
         : [];
 
+      if (parsedQuestions.length === 0) {
+        toast({
+          title: "Empty Quiz",
+          description: "This quiz has no questions. Please regenerate the quiz.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       setQuiz({
         id: quizData.id,
         questions: parsedQuestions,
@@ -117,10 +125,13 @@ const QuizInterface = () => {
       <div className="min-h-screen pt-24 pb-12 px-6 bg-slate-900">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-slate-100 mb-4">No Quiz Available</h1>
-            <p className="text-slate-400 mb-8">No quiz has been generated for this document yet.</p>
+            <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Brain size={36} className="text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-slate-100 mb-4">No Quiz Available</h1>
+            <p className="text-slate-400 mb-8 text-lg">No quiz has been generated for this document yet.</p>
             <Link to={`/document/${id}`}>
-              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg">
+              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
                 <ArrowLeft size={20} className="mr-2" />
                 Back to Document
               </Button>
@@ -188,17 +199,17 @@ const QuizInterface = () => {
         <div className="container mx-auto max-w-4xl">
           <Card className="glass-card border-slate-700/50 shadow-2xl">
             <CardHeader className="text-center bg-gradient-to-r from-slate-800/50 to-slate-700/50">
-              <CardTitle className="text-3xl font-bold text-slate-100 mb-4">
+              <CardTitle className="text-4xl font-bold text-slate-100 mb-4">
                 Quiz Complete! 🎉
               </CardTitle>
-              <div className={`text-6xl font-bold ${getScoreColor()}`}>
+              <div className={`text-7xl font-bold ${getScoreColor()} mb-2`}>
                 {score}/{quiz.questions.length}
               </div>
-              <p className="text-xl text-slate-300 mt-2">
+              <p className="text-2xl text-slate-300">
                 You scored {Math.round((score / quiz.questions.length) * 100)}%
               </p>
             </CardHeader>
-            <CardContent className="space-y-6 p-6">
+            <CardContent className="space-y-6 p-8">
               {quiz.questions.map((question, index) => {
                 const userAnswer = answers[index];
                 const isCorrect = typeof userAnswer === 'string' && typeof question.correctAnswer === 'string' 
@@ -206,20 +217,25 @@ const QuizInterface = () => {
                   : false;
 
                 return (
-                  <div key={question.id} className="border border-slate-600/50 rounded-lg p-4 bg-gradient-to-r from-slate-800/30 to-slate-700/30">
-                    <div className="flex items-start space-x-3">
-                      {isCorrect ? (
-                        <CheckCircle className="text-emerald-400 mt-1" size={20} />
-                      ) : (
-                        <XCircle className="text-red-400 mt-1" size={20} />
-                      )}
+                  <div key={question.id} className="border border-slate-600/50 rounded-lg p-6 bg-gradient-to-r from-slate-800/30 to-slate-700/30 shadow-lg">
+                    <div className="flex items-start space-x-4">
+                      <div className="flex-shrink-0">
+                        {isCorrect ? (
+                          <CheckCircle className="text-emerald-400 mt-1" size={24} />
+                        ) : (
+                          <XCircle className="text-red-400 mt-1" size={24} />
+                        )}
+                      </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-2 text-slate-200">Question {index + 1}</h3>
-                        <p className="text-slate-300 mb-2">{question.question}</p>
-                        <div className="space-y-1">
-                          <p className="text-slate-300"><strong>Your answer:</strong> {userAnswer || 'Not answered'}</p>
-                          <p className="text-slate-300"><strong>Correct answer:</strong> {question.correctAnswer}</p>
-                          <p className="text-sm text-slate-400 mt-2 bg-slate-800/50 p-2 rounded">{question.explanation}</p>
+                        <h3 className="font-semibold mb-3 text-slate-200 text-lg">Question {index + 1}</h3>
+                        <p className="text-slate-300 mb-4 text-lg leading-relaxed">{question.question}</p>
+                        <div className="space-y-2">
+                          <p className="text-slate-300"><strong>Your answer:</strong> <span className={isCorrect ? 'text-emerald-300' : 'text-red-300'}>{userAnswer || 'Not answered'}</span></p>
+                          <p className="text-slate-300"><strong>Correct answer:</strong> <span className="text-emerald-300">{question.correctAnswer}</span></p>
+                          <div className="mt-4 p-4 bg-slate-800/50 rounded-lg border border-slate-600/30">
+                            <p className="text-sm text-slate-400"><strong>Explanation:</strong></p>
+                            <p className="text-sm text-slate-300 mt-1">{question.explanation}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -227,13 +243,13 @@ const QuizInterface = () => {
                 );
               })}
               
-              <div className="flex justify-center space-x-4 pt-6">
-                <Button onClick={resetQuiz} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg">
+              <div className="flex justify-center space-x-4 pt-8">
+                <Button onClick={resetQuiz} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200 px-8 py-3">
                   <RotateCcw size={20} className="mr-2" />
                   Retake Quiz
                 </Button>
                 <Link to={`/document/${id}`}>
-                  <Button variant="outline" className="bg-slate-800/50 border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400">
+                  <Button variant="outline" className="bg-slate-800/50 border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400 transform hover:scale-105 transition-all duration-200 px-8 py-3">
                     <ArrowLeft size={20} className="mr-2" />
                     Back to Document
                   </Button>
@@ -258,46 +274,50 @@ const QuizInterface = () => {
     <div className="min-h-screen pt-24 pb-12 px-6 bg-slate-900">
       <div className="container mx-auto max-w-4xl">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <Link to={`/document/${id}`}>
-              <Button variant="outline" className="bg-slate-800/50 border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400">
+              <Button variant="outline" className="bg-slate-800/50 border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400 transform hover:scale-105 transition-all duration-200">
                 <ArrowLeft size={20} className="mr-2" />
                 Back to Document
               </Button>
             </Link>
           </div>
-          <h1 className="text-3xl font-bold text-slate-100 mb-4">Document Quiz</h1>
+          <h1 className="text-4xl font-bold text-slate-100 mb-4">Document Quiz</h1>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-slate-300">
+            <span className="text-slate-300 text-lg">
               Question {currentQuestion + 1} of {quiz.questions.length}
             </span>
             <span className="text-sm text-slate-400">
               Progress: {Math.round(progress)}%
             </span>
           </div>
-          <Progress value={progress} className="h-2 bg-slate-800" />
+          <Progress value={progress} className="h-3 bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+          </Progress>
         </div>
 
         <Card className="glass-card border-slate-700/50 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-slate-800/50 to-slate-700/50">
-            <CardTitle className="flex items-center space-x-2">
-              <Brain className="text-purple-400" size={24} />
-              <span className="text-slate-100">Question {currentQuestion + 1}</span>
+            <CardTitle className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <Brain className="text-white" size={24} />
+              </div>
+              <span className="text-slate-100 text-2xl">Question {currentQuestion + 1}</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6 p-8">
-            <div className="text-lg font-medium text-slate-200">
+          <CardContent className="space-y-8 p-8">
+            <div className="text-xl font-medium text-slate-200 leading-relaxed">
               {currentQ.question}
             </div>
 
             {currentQ.type === 'mcq' && currentQ.options && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {currentQ.options.map((option, index) => (
                   <label
                     key={index}
-                    className={`block p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                    className={`block p-6 rounded-xl border-2 cursor-pointer transition-all hover:shadow-lg transform hover:scale-[1.02] ${
                       selectedAnswer === option
-                        ? 'border-purple-400 bg-purple-500/20'
+                        ? 'border-purple-400 bg-purple-500/20 shadow-lg'
                         : 'border-slate-600/50 bg-slate-800/30 hover:border-purple-500/50 hover:bg-purple-500/10'
                     }`}
                   >
@@ -309,7 +329,7 @@ const QuizInterface = () => {
                       onChange={(e) => handleAnswerSelect(e.target.value)}
                       className="sr-only"
                     />
-                    <span className="text-slate-300">{option}</span>
+                    <span className="text-slate-300 text-lg">{option}</span>
                   </label>
                 ))}
               </div>
@@ -322,12 +342,12 @@ const QuizInterface = () => {
                   value={selectedAnswer}
                   onChange={(e) => handleAnswerSelect(e.target.value)}
                   placeholder="Type your answer here..."
-                  className="w-full p-4 border-2 border-slate-600/50 rounded-lg focus:border-purple-400 focus:outline-none bg-slate-800/50 text-slate-200 placeholder-slate-500"
+                  className="w-full p-6 border-2 border-slate-600/50 rounded-xl focus:border-purple-400 focus:outline-none bg-slate-800/50 text-slate-200 placeholder-slate-500 text-lg transition-all"
                 />
               </div>
             )}
 
-            <div className="flex justify-between pt-6">
+            <div className="flex justify-between pt-8">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -337,7 +357,7 @@ const QuizInterface = () => {
                   }
                 }}
                 disabled={currentQuestion === 0}
-                className="bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-200"
+                className="bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-200 disabled:opacity-50 transform hover:scale-105 transition-all duration-200 px-8 py-3"
               >
                 Previous
               </Button>
@@ -345,7 +365,7 @@ const QuizInterface = () => {
               <Button
                 onClick={handleNext}
                 disabled={!selectedAnswer.trim()}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 px-8 py-3"
               >
                 {currentQuestion === quiz.questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
               </Button>
