@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Target, ArrowLeft, Lightbulb, Loader2, RefreshCw, ExternalLink, FileText } from 'lucide-react';
+import { BookOpen, Target, ArrowLeft, Lightbulb, Loader2, RefreshCw, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -309,7 +308,7 @@ const DocumentViewer = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Study Actions Card */}
-            <Card className="glass-card border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl shadow-2xl">
+            <Card className="glass-card border-purple-500/50 bg-gradient-to-r from-slate-800/80 to-purple-900/60 backdrop-blur-xl shadow-2xl">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-slate-100 flex items-center">
                   <Target className="mr-2 text-purple-400" size={20} />
@@ -345,33 +344,33 @@ const DocumentViewer = () => {
             </Card>
 
             {/* Document Stats Card */}
-            <Card className="glass-card border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl shadow-2xl">
+            <Card className="glass-card border-purple-500/50 bg-gradient-to-r from-slate-800/80 to-purple-900/60 backdrop-blur-xl shadow-2xl">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-slate-100">Document Stats</h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/50 border border-purple-500/30">
                     <span className="text-slate-300">File Size:</span>
                     <span className="font-medium text-purple-300">{(document.file_size / 1024 / 1024).toFixed(2)} MB</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/50 border border-purple-500/30">
                     <span className="text-slate-300">Status:</span>
                     <Badge variant={document.processed ? "default" : "secondary"} className={document.processed ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50" : "bg-amber-500/20 text-amber-300 border-amber-500/50"}>
                       {document.processed ? "Processed" : "Processing"}
                     </Badge>
                   </div>
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/50 border border-purple-500/30">
                     <span className="text-slate-300">Content:</span>
                     <Badge className={hasContent ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50" : "bg-red-500/20 text-red-300 border-red-500/50"}>
                       {hasContent ? "Available" : "Not Available"}
                     </Badge>
                   </div>
                   {quiz && (
-                    <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/50 border border-purple-500/30">
                       <span className="text-slate-300">Quiz Questions:</span>
                       <span className="font-medium text-purple-300">{quiz.questions?.length || 0}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/50 border border-purple-500/30">
                     <span className="text-slate-300">Upload Date:</span>
                     <span className="font-medium text-purple-300">{new Date(document.upload_date).toLocaleDateString()}</span>
                   </div>
@@ -380,14 +379,14 @@ const DocumentViewer = () => {
             </Card>
 
             {/* Study Tips Card */}
-            <Card className="glass-card border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl shadow-2xl">
+            <Card className="glass-card border-purple-500/50 bg-gradient-to-r from-slate-800/80 to-purple-900/60 backdrop-blur-xl shadow-2xl">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-slate-100 flex items-center">
                   <Lightbulb className="mr-2 text-purple-400" size={20} />
                   Study Tips
                 </h3>
                 <div className="space-y-4">
-                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/50 border border-purple-500/30">
                     <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-sm font-bold">1</span>
                     </div>
@@ -395,7 +394,7 @@ const DocumentViewer = () => {
                       Upload documents with clear, readable text for best AI analysis results
                     </p>
                   </div>
-                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/50 border border-purple-500/30">
                     <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-sm font-bold">2</span>
                     </div>
@@ -403,45 +402,13 @@ const DocumentViewer = () => {
                       Review the detailed summary first for comprehensive understanding
                     </p>
                   </div>
-                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/50 border border-purple-500/30">
                     <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-sm font-bold">3</span>
                     </div>
                     <p className="text-sm text-slate-300">
                       Take the quiz to test your understanding and retention
                     </p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Built By Card */}
-            <Card className="glass-card border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl shadow-2xl">
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-4 text-slate-100 text-center">Built By</h3>
-                <div className="text-center">
-                  <p className="text-lg font-semibold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text mb-4">
-                    Speedy Study
-                  </p>
-                  <div className="space-y-3">
-                    <a 
-                      href="https://www.linkedin.com/in/gopichand-dandimeni-269709287/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-2 text-slate-300 hover:text-purple-300 transition-colors p-3 rounded-lg bg-slate-700/30 border border-slate-600/30 hover:bg-purple-500/10 hover:border-purple-500/50"
-                    >
-                      <span className="font-medium">Gopichand Dandimeni</span>
-                      <ExternalLink size={16} />
-                    </a>
-                    <a 
-                      href="http://www.linkedin.com/in/priyankagara" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-2 text-slate-300 hover:text-purple-300 transition-colors p-3 rounded-lg bg-slate-700/30 border border-slate-600/30 hover:bg-purple-500/10 hover:border-purple-500/50"
-                    >
-                      <span className="font-medium">Priyanka Gara</span>
-                      <ExternalLink size={16} />
-                    </a>
                   </div>
                 </div>
               </div>
