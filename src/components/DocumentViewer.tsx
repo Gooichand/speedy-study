@@ -210,9 +210,9 @@ const DocumentViewer = () => {
             {document.summary ? (
               <SummaryDisplay summary={document.summary} title={document.title} />
             ) : (
-              <Card className="glass-card border-slate-700/50 shadow-2xl">
+              <Card className="glass-card border-slate-700/50 shadow-2xl bg-slate-800/40 backdrop-blur-xl">
                 <div className="text-center py-12 p-8">
-                  <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow-purple">
                     {isGenerating ? (
                       <Loader2 size={36} className="text-white animate-spin" />
                     ) : (
@@ -222,7 +222,7 @@ const DocumentViewer = () => {
                   <h3 className="text-3xl font-bold text-slate-100 mb-4">
                     {isGenerating ? 'Generating AI Summary...' : 'Ready for AI Analysis'}
                   </h3>
-                  <p className="text-slate-400 mb-8 text-lg leading-relaxed max-w-2xl mx-auto">
+                  <p className="text-slate-300 mb-8 text-lg leading-relaxed max-w-2xl mx-auto">
                     {!document.processed 
                       ? "Your document is being processed. The AI analysis will be available shortly."
                       : isGenerating
@@ -246,115 +246,132 @@ const DocumentViewer = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="glass-card border-slate-700/50 p-6 shadow-xl">
-              <h3 className="text-xl font-bold mb-4 text-slate-100">Study Actions</h3>
-              <div className="space-y-3">
-                {quiz ? (
-                  <Link to={`/quiz/${id}`} className="block">
-                    <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
-                      <Target size={20} className="mr-2" />
-                      Take Quiz ({quiz.questions?.length || 0} questions)
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button 
-                    onClick={handleRegenerateSummary}
-                    disabled={isGenerating || !document.processed}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
-                  >
-                    <Target size={20} className="mr-2" />
-                    {isGenerating ? 'Generating Quiz...' : 'Generate Quiz'}
-                  </Button>
-                )}
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
-                  <BookOpen size={20} className="mr-2" />
-                  Study Mode
-                </Button>
-              </div>
-            </Card>
-
-            <Card className="glass-card border-slate-700/50 p-6 shadow-xl">
-              <h3 className="text-xl font-bold mb-4 text-slate-100">Document Stats</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">File Size:</span>
-                  <span className="font-medium text-slate-300">{(document.file_size / 1024 / 1024).toFixed(2)} MB</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Status:</span>
-                  <Badge variant={document.processed ? "default" : "secondary"} className={document.processed ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50" : "bg-amber-500/20 text-amber-300 border-amber-500/50"}>
-                    {document.processed ? "Processed" : "Processing"}
-                  </Badge>
-                </div>
-                {quiz && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Quiz Questions:</span>
-                    <span className="font-medium text-purple-300">{quiz.questions?.length || 0}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Upload Date:</span>
-                  <span className="font-medium text-slate-300">{new Date(document.upload_date).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="glass-card border-slate-700/50 p-6 shadow-xl">
-              <h3 className="text-xl font-bold mb-4 text-slate-100">Study Tips</h3>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-bold">1</span>
-                  </div>
-                  <p className="text-sm text-slate-400">
-                    Start with the detailed summary for comprehensive understanding
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-bold">2</span>
-                  </div>
-                  <p className="text-sm text-slate-400">
-                    Review key points for quick recall and memorization
-                  </p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-bold">3</span>
-                  </div>
-                  <p className="text-sm text-slate-400">
-                    Take the quiz to test your understanding of this specific document
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Attribution Card */}
-            <Card className="glass-card border-slate-700/50 p-6 shadow-xl">
-              <h3 className="text-xl font-bold mb-4 text-slate-100 text-center">Built By</h3>
-              <div className="text-center">
-                <p className="text-lg font-semibold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text mb-4">
-                  Speedy Study
-                </p>
+            {/* Study Actions Card */}
+            <Card className="glass-card border-slate-700/50 bg-slate-800/40 backdrop-blur-xl shadow-2xl">
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-4 text-slate-100 flex items-center">
+                  <Target className="mr-2 text-purple-400" size={20} />
+                  Study Actions
+                </h3>
                 <div className="space-y-3">
-                  <a 
-                    href="https://www.linkedin.com/in/gopichand-dandimeni-269709287/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center space-x-2 text-slate-400 hover:text-purple-300 transition-colors p-2 rounded-lg hover:bg-purple-500/10"
-                  >
-                    <span className="font-medium">Gopichand Dandimeni</span>
-                    <ExternalLink size={16} />
-                  </a>
-                  <a 
-                    href="http://www.linkedin.com/in/priyankagara" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center space-x-2 text-slate-400 hover:text-purple-300 transition-colors p-2 rounded-lg hover:bg-purple-500/10"
-                  >
-                    <span className="font-medium">Priyanka Gara</span>
-                    <ExternalLink size={16} />
-                  </a>
+                  {quiz ? (
+                    <Link to={`/quiz/${id}`} className="block">
+                      <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <Target size={20} className="mr-2" />
+                        Take Quiz ({quiz.questions?.length || 0} questions)
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button 
+                      onClick={handleRegenerateSummary}
+                      disabled={isGenerating || !document.processed}
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
+                    >
+                      <Target size={20} className="mr-2" />
+                      {isGenerating ? 'Generating Quiz...' : 'Generate Quiz'}
+                    </Button>
+                  )}
+                  <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+                    <BookOpen size={20} className="mr-2" />
+                    Study Mode
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Document Stats Card */}
+            <Card className="glass-card border-slate-700/50 bg-slate-800/40 backdrop-blur-xl shadow-2xl">
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-4 text-slate-100">Document Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                    <span className="text-slate-300">File Size:</span>
+                    <span className="font-medium text-purple-300">{(document.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                    <span className="text-slate-300">Status:</span>
+                    <Badge variant={document.processed ? "default" : "secondary"} className={document.processed ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50" : "bg-amber-500/20 text-amber-300 border-amber-500/50"}>
+                      {document.processed ? "Processed" : "Processing"}
+                    </Badge>
+                  </div>
+                  {quiz && (
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                      <span className="text-slate-300">Quiz Questions:</span>
+                      <span className="font-medium text-purple-300">{quiz.questions?.length || 0}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                    <span className="text-slate-300">Upload Date:</span>
+                    <span className="font-medium text-purple-300">{new Date(document.upload_date).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Study Tips Card */}
+            <Card className="glass-card border-slate-700/50 bg-slate-800/40 backdrop-blur-xl shadow-2xl">
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-4 text-slate-100 flex items-center">
+                  <Lightbulb className="mr-2 text-purple-400" size={20} />
+                  Study Tips
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-bold">1</span>
+                    </div>
+                    <p className="text-sm text-slate-300">
+                      Start with the detailed summary for comprehensive understanding
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-bold">2</span>
+                    </div>
+                    <p className="text-sm text-slate-300">
+                      Review key points for quick recall and memorization
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-bold">3</span>
+                    </div>
+                    <p className="text-sm text-slate-300">
+                      Take the quiz to test your understanding of this specific document
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Built By Card */}
+            <Card className="glass-card border-slate-700/50 bg-slate-800/40 backdrop-blur-xl shadow-2xl">
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-4 text-slate-100 text-center">Built By</h3>
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text mb-4">
+                    Speedy Study
+                  </p>
+                  <div className="space-y-3">
+                    <a 
+                      href="https://www.linkedin.com/in/gopichand-dandimeni-269709287/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 text-slate-300 hover:text-purple-300 transition-colors p-3 rounded-lg bg-slate-700/30 border border-slate-600/30 hover:bg-purple-500/10 hover:border-purple-500/50"
+                    >
+                      <span className="font-medium">Gopichand Dandimeni</span>
+                      <ExternalLink size={16} />
+                    </a>
+                    <a 
+                      href="http://www.linkedin.com/in/priyankagara" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 text-slate-300 hover:text-purple-300 transition-colors p-3 rounded-lg bg-slate-700/30 border border-slate-600/30 hover:bg-purple-500/10 hover:border-purple-500/50"
+                    >
+                      <span className="font-medium">Priyanka Gara</span>
+                      <ExternalLink size={16} />
+                    </a>
+                  </div>
                 </div>
               </div>
             </Card>

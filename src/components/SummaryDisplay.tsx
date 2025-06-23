@@ -42,16 +42,16 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
   };
 
   return (
-    <Card className="glass-card border-slate-700/50 shadow-2xl">
-      <CardHeader className="bg-gradient-to-r from-slate-800/50 to-slate-700/50">
+    <Card className="glass-card border-slate-700/50 shadow-2xl bg-slate-800/40 backdrop-blur-xl">
+      <CardHeader className="bg-gradient-to-r from-slate-800/60 to-slate-700/60 border-b border-slate-600/30">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-glow-purple">
               <FileText size={28} className="text-white" />
             </div>
             <div>
               <span className="text-slate-100 text-2xl">AI-Generated Summary</span>
-              <p className="text-slate-400 text-sm mt-1">Intelligent analysis of your document</p>
+              <p className="text-slate-300 text-sm mt-1">Intelligent analysis of your document</p>
             </div>
           </CardTitle>
           <div className="flex space-x-3">
@@ -71,20 +71,20 @@ const SummaryDisplay: React.FC<SummaryDisplayProps> = ({ summary, title }) => {
 
       <CardContent className="p-0">
         <Tabs defaultValue="detailed" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 m-6 bg-slate-800/50 rounded-xl">
-            <TabsTrigger value="detailed" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300 rounded-lg transition-all">
+          <TabsList className="grid w-full grid-cols-4 m-6 bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-600/30">
+            <TabsTrigger value="detailed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white text-slate-300 rounded-lg transition-all hover:bg-slate-700/50">
               <BookOpen size={16} className="mr-2" />
               Detailed
             </TabsTrigger>
-            <TabsTrigger value="brief" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300 rounded-lg transition-all">
+            <TabsTrigger value="brief" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white text-slate-300 rounded-lg transition-all hover:bg-slate-700/50">
               <FileText size={16} className="mr-2" />
               Brief
             </TabsTrigger>
-            <TabsTrigger value="keypoints" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300 rounded-lg transition-all">
+            <TabsTrigger value="keypoints" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white text-slate-300 rounded-lg transition-all hover:bg-slate-700/50">
               <List size={16} className="mr-2" />
               Key Points
             </TabsTrigger>
-            <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300 rounded-lg transition-all">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white text-slate-300 rounded-lg transition-all hover:bg-slate-700/50">
               <Lightbulb size={16} className="mr-2" />
               Overview
             </TabsTrigger>
