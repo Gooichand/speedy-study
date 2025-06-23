@@ -177,13 +177,13 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <Card className="w-full max-w-md p-8 bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-slate-900">
+      <Card className="w-full max-w-md p-8 glass-card border-slate-700/50 shadow-2xl">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-purple-gradient rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow-purple">
+          <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow-purple">
             <BookOpen size={32} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 className="text-3xl font-bold text-slate-100 mb-2">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h1>
           <p className="text-slate-300">
@@ -203,7 +203,7 @@ const Auth = () => {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="pl-10 bg-slate-700/80 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500"
+                  className="pl-10 bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500/20"
                   placeholder="Enter your full name"
                   required={!isLogin}
                 />
@@ -221,7 +221,7 @@ const Auth = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 bg-slate-700/80 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500"
+                className="pl-10 bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500/20"
                 placeholder="Enter your email"
                 required
               />
@@ -238,14 +238,14 @@ const Auth = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 bg-slate-700/80 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500"
+                className="pl-10 pr-10 bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500/20"
                 placeholder="Enter your password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-purple-300 transition-colors"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -263,7 +263,7 @@ const Auth = () => {
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 bg-slate-700/80 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500"
+                  className="pl-10 bg-slate-800/50 border-slate-600/50 text-slate-100 placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500/20"
                   placeholder="Confirm your password"
                   required={!isLogin}
                 />
@@ -274,7 +274,7 @@ const Auth = () => {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full btn-3d bg-purple-gradient hover:opacity-90 text-white py-3 text-lg rounded-xl shadow-glow-purple"
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
           >
             {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
           </Button>

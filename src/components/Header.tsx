@@ -22,10 +22,10 @@ const Header = () => {
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-purple-gradient rounded-xl flex items-center justify-center shadow-glow-purple">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
               <BookOpen size={24} className="text-white" />
             </div>
-            <span className="text-2xl font-bold text-white font-space">Speedy Study</span>
+            <span className="text-2xl font-bold text-slate-100 font-space">Speedy Study</span>
           </Link>
 
           <nav className="hidden md:flex items-center space-x-8">
@@ -36,7 +36,7 @@ const Header = () => {
                   className={`flex items-center space-x-2 transition-colors ${
                     isActive('/dashboard') 
                       ? 'text-purple-400' 
-                      : 'text-slate-300 hover:text-white'
+                      : 'text-slate-300 hover:text-purple-300'
                   }`}
                 >
                   <BarChart3 size={18} />
@@ -47,7 +47,7 @@ const Header = () => {
                   className={`flex items-center space-x-2 transition-colors ${
                     isActive('/upload') 
                       ? 'text-purple-400' 
-                      : 'text-slate-300 hover:text-white'
+                      : 'text-slate-300 hover:text-purple-300'
                   }`}
                 >
                   <UploadCloud size={18} />
@@ -62,7 +62,7 @@ const Header = () => {
                     onClick={handleSignOut}
                     variant="outline"
                     size="sm"
-                    className="border-slate-600 text-slate-300 hover:text-white hover:border-slate-400"
+                    className="border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400 transition-all duration-200"
                   >
                     <LogOut size={16} className="mr-2" />
                     Sign Out
@@ -71,7 +71,7 @@ const Header = () => {
               </>
             ) : (
               <Link to="/auth">
-                <Button className="bg-purple-gradient hover:opacity-90 text-white">
+                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
                   Get Started
                 </Button>
               </Link>
@@ -85,13 +85,13 @@ const Header = () => {
                 onClick={handleSignOut}
                 variant="outline"
                 size="sm"
-                className="border-slate-600 text-slate-300 hover:text-white hover:border-slate-400"
+                className="border-purple-500/50 text-purple-300 hover:bg-purple-600/20 hover:text-purple-200 hover:border-purple-400 transition-all duration-200"
               >
                 <LogOut size={16} />
               </Button>
             ) : (
               <Link to="/auth">
-                <Button size="sm" className="bg-purple-gradient hover:opacity-90 text-white">
+                <Button size="sm" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
                   Sign In
                 </Button>
               </Link>
