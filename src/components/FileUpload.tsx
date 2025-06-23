@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,17 +7,20 @@ import { Upload, FileText, CheckCircle, AlertCircle, X, Shield } from 'lucide-re
 import { useToast } from '@/hooks/use-toast';
 import { useSecurityContext } from '@/contexts/SecurityContext';
 import { validateFile, sanitizeText } from '@/utils/security';
+import { extractFileContent, validateFileContent } from '@/utils/fileExtractor';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface FileWithValidation extends File {
   validationError?: string;
+  extractedContent?: string;
 }
 
 const FileUpload = () => {
   const [files, setFiles] = useState<FileWithValidation[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [extracting, setExtracting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { logSecurityEvent, addAlert } = useSecurityContext();
@@ -29,29 +31,64 @@ const FileUpload = () => {
     '.json', '.xml', '.csv', '.xls', '.xlsx', '.rtf', '.odt', '.epub'
   ];
 
-  const handleFileSelect = useCallback((selectedFiles: FileList | null) => {
+  const handleFileSelect = useCallback(async (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
     
+    setExtracting(true);
     const fileArray = Array.from(selectedFiles);
     const validatedFiles: FileWithValidation[] = [];
     let hasInvalidFiles = false;
 
-    fileArray.forEach(file => {
+    for (const file of fileArray) {
       const sanitizedName = sanitizeText(file.name);
       const validation = validateFile(file);
       
       if (validation.isValid) {
-        const validatedFile = file.name !== sanitizedName 
-          ? new File([file], sanitizedName, { type: file.type }) as FileWithValidation
-          : file as FileWithValidation;
+        try {
+          // Extract content from the file
+          const extractedContent = await extractFileContent(file);
+          const isValidContent = validateFileContent(extractedContent, file.name);
           
-        validatedFiles.push(validatedFile);
-        
-        logSecurityEvent('FILE_UPLOAD_VALIDATED', {
-          fileName: sanitizedName,
-          fileSize: file.size,
-          fileType: file.type
-        });
+          if (isValidContent) {
+            const validatedFile = file.name !== sanitizedName 
+              ? new File([file], sanitizedName, { type: file.type }) as FileWithValidation
+              : file as FileWithValidation;
+              
+            validatedFile.extractedContent = extractedContent;
+            validatedFiles.push(validatedFile);
+            
+            logSecurityEvent('FILE_UPLOAD_VALIDATED', {
+              fileName: sanitizedName,
+              fileSize: file.size,
+              fileType: file.type,
+              contentLength: extractedContent.length
+            });
+          } else {
+            hasInvalidFiles = true;
+            const invalidFile = file as FileWithValidation;
+            invalidFile.validationError = 'File content is too short or unreadable for analysis';
+            validatedFiles.push(invalidFile);
+            
+            logSecurityEvent('FILE_UPLOAD_REJECTED', {
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type,
+              reason: 'Invalid content'
+            });
+          }
+        } catch (error) {
+          hasInvalidFiles = true;
+          const invalidFile = file as FileWithValidation;
+          invalidFile.validationError = `Failed to extract content: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          validatedFiles.push(invalidFile);
+          
+          logSecurityEvent('FILE_UPLOAD_REJECTED', {
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            reason: 'Content extraction failed'
+          });
+        }
       } else {
         hasInvalidFiles = true;
         const invalidFile = file as FileWithValidation;
@@ -65,19 +102,21 @@ const FileUpload = () => {
           reason: validation.error
         });
       }
-    });
+    }
 
     if (hasInvalidFiles) {
-      addAlert('warning', 'Some files were rejected due to security restrictions');
+      addAlert('warning', 'Some files were rejected due to security restrictions or content issues');
     }
 
     const totalFiles = files.length + validatedFiles.filter(f => !f.validationError).length;
     if (totalFiles > 10) {
       addAlert('warning', 'Maximum 10 files allowed per upload session');
+      setExtracting(false);
       return;
     }
 
     setFiles(prev => [...prev, ...validatedFiles]);
+    setExtracting(false);
   }, [files.length, addAlert, logSecurityEvent]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -99,54 +138,16 @@ const FileUpload = () => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const generateSummary = (fileName: string, fileSize: number): string => {
-    // Simulate document summarization based on file type and size
-    const summaries = [
-      "This document covers key concepts in database management systems, including normalization, indexing, and query optimization techniques.",
-      "An overview of project management methodologies with focus on agile development practices and team collaboration strategies.",
-      "Technical documentation covering software architecture patterns, design principles, and implementation best practices.",
-      "Academic material on data structures and algorithms with practical examples and performance analysis.",
-      "Business analysis document covering market research, strategic planning, and operational efficiency improvements."
-    ];
-    
-    return summaries[Math.floor(Math.random() * summaries.length)];
-  };
-
-  const generateQuizQuestions = (fileName: string): any[] => {
-    // Generate quiz questions based on document content simulation
-    const questionSets = [
-      [
-        {
-          id: 1,
-          type: "mcq",
-          question: `Based on the content in ${fileName}, what is the primary focus?`,
-          options: ["Data Management", "User Interface Design", "Network Security", "Project Planning"],
-          correctAnswer: "Data Management",
-          explanation: "The document primarily discusses data management concepts and techniques."
-        },
-        {
-          id: 2,
-          type: "fill",
-          question: "Complete this key concept from the document: Database ______ ensures data integrity.",
-          correctAnswer: "normalization",
-          explanation: "Normalization is a key process in database design to ensure data integrity."
-        }
-      ]
-    ];
-    
-    return questionSets[0];
-  };
-
   const handleUpload = async () => {
     if (!user) {
       addAlert('error', 'Please sign in to upload documents');
       return;
     }
 
-    const validFiles = files.filter(f => !f.validationError);
+    const validFiles = files.filter(f => !f.validationError && f.extractedContent);
     
     if (validFiles.length === 0) {
-      addAlert('warning', 'No valid files to upload');
+      addAlert('warning', 'No valid files with extractable content to upload');
       return;
     }
 
@@ -171,13 +172,9 @@ const FileUpload = () => {
         const file = validFiles[i];
         
         // Update progress
-        setUploadProgress(((i + 1) / validFiles.length) * 80);
+        setUploadProgress(((i + 1) / validFiles.length) * 100);
         
-        // Generate summary and content simulation
-        const summary = generateSummary(file.name, file.size);
-        const content = `Content extracted from ${file.name}. This is a simulation of document processing.`;
-        
-        // Save document to database
+        // Save document to database with extracted content
         const { data: documentData, error: documentError } = await supabase
           .from('documents')
           .insert({
@@ -186,8 +183,7 @@ const FileUpload = () => {
             file_name: file.name,
             file_type: file.type,
             file_size: file.size,
-            summary: summary,
-            content: content,
+            content: file.extractedContent,
             processed: true
           })
           .select()
@@ -198,28 +194,12 @@ const FileUpload = () => {
           throw new Error(`Failed to save ${file.name}: ${documentError.message}`);
         }
 
-        // Generate and save quiz for this document
-        const quizQuestions = generateQuizQuestions(file.name);
+        console.log('Document saved successfully:', documentData.id, 'with content length:', file.extractedContent?.length);
         
-        const { error: quizError } = await supabase
-          .from('quizzes')
-          .insert({
-            user_id: user.id,
-            document_id: documentData.id,
-            questions: quizQuestions
-          });
-
-        if (quizError) {
-          console.error('Error saving quiz:', quizError);
-          // Don't throw error for quiz, document is still saved
-        }
-
         // Small delay to simulate processing
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
-      setUploadProgress(100);
-      
       logSecurityEvent('FILE_UPLOAD_COMPLETED', {
         fileCount: validFiles.length,
         totalSize
@@ -227,7 +207,7 @@ const FileUpload = () => {
 
       toast({
         title: "Upload successful!",
-        description: `${validFiles.length} file(s) uploaded, processed, and quizzes generated successfully.`
+        description: `${validFiles.length} file(s) uploaded and processed successfully. AI summaries and quizzes will be generated automatically.`
       });
 
       // Clear files and navigate to dashboard
@@ -265,7 +245,7 @@ const FileUpload = () => {
             <div>
               <h3 className="font-semibold text-emerald-100">Security Protected</h3>
               <p className="text-sm text-emerald-200">
-                All uploads are scanned for security threats and validated for content safety
+                All uploads are scanned for security threats and content is automatically extracted for AI analysis
               </p>
             </div>
           </div>
@@ -279,10 +259,14 @@ const FileUpload = () => {
             onClick={() => document.getElementById('file-input')?.click()}
           >
             <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/25">
-              <Upload size={40} className="text-white" />
+              {extracting ? (
+                <AlertCircle size={40} className="text-white animate-spin" />
+              ) : (
+                <Upload size={40} className="text-white" />
+              )}
             </div>
             <h3 className="text-2xl font-bold mb-2 text-white">
-              Drop your files here or click to browse
+              {extracting ? 'Extracting content...' : 'Drop your files here or click to browse'}
             </h3>
             <p className="text-slate-300 mb-4">
               Maximum 10 files, 50MB per file, 200MB total
@@ -294,6 +278,7 @@ const FileUpload = () => {
               accept={acceptedFileTypes.join(',')}
               onChange={(e) => handleFileSelect(e.target.files)}
               className="hidden"
+              disabled={extracting}
             />
           </div>
         </Card>
@@ -315,7 +300,7 @@ const FileUpload = () => {
                     <div>
                       <p className="font-medium text-white">{file.name}</p>
                       <p className="text-sm text-slate-300">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                        {(file.size / 1024 / 1024).toFixed(2)} MB • Content extracted: {file.extractedContent ? `${file.extractedContent.length} characters` : 'Processing...'}
                       </p>
                     </div>
                   </div>
@@ -372,11 +357,7 @@ const FileUpload = () => {
               <h3 className="text-xl font-bold mb-4 text-white">Processing Your Documents</h3>
               <Progress value={uploadProgress} className="mb-4" />
               <p className="text-slate-300">
-                {uploadProgress < 25 ? 'Uploading files...' : 
-                 uploadProgress < 50 ? 'Analyzing content...' : 
-                 uploadProgress < 75 ? 'Generating summaries...' : 
-                 uploadProgress < 95 ? 'Creating quizzes...' : 
-                 'Processing complete...'}
+                {uploadProgress < 50 ? 'Uploading files...' : 'Saving to database...'}
               </p>
             </div>
           </Card>
@@ -385,13 +366,18 @@ const FileUpload = () => {
         <div className="flex justify-center space-x-4">
           <Button
             onClick={handleUpload}
-            disabled={validFiles.length === 0 || uploading || !user}
+            disabled={validFiles.length === 0 || uploading || !user || extracting}
             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 text-lg rounded-xl shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:shadow-none transform hover:scale-105 transition-all duration-300"
           >
             {uploading ? (
               <>
                 <AlertCircle size={20} className="mr-2 animate-spin" />
                 Processing...
+              </>
+            ) : extracting ? (
+              <>
+                <AlertCircle size={20} className="mr-2 animate-spin" />
+                Extracting Content...
               </>
             ) : (
               <>
