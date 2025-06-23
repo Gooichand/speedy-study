@@ -14,12 +14,12 @@ export const useSummaryGeneration = () => {
 
       // Enhanced content validation
       if (!content || typeof content !== 'string' || content.trim().length === 0) {
-        throw new Error('Document content is empty or invalid');
+        throw new Error('Document content is empty or invalid. Please upload a document with readable text content.');
       }
 
       const trimmedContent = content.trim();
       if (trimmedContent.length < 100) {
-        throw new Error('Document content is too short for meaningful analysis (minimum 100 characters required)');
+        throw new Error('Document content is too short for meaningful analysis. Minimum 100 characters required for AI processing.');
       }
 
       // Validate file size
@@ -29,6 +29,12 @@ export const useSummaryGeneration = () => {
       }
 
       console.log('Calling edge function with validated content...');
+
+      // Show initial progress toast
+      toast({
+        title: "Processing Started",
+        description: "AI is analyzing your document content...",
+      });
 
       // Call the edge function
       const { data, error } = await supabase.functions.invoke('generate-summary', {
@@ -41,11 +47,11 @@ export const useSummaryGeneration = () => {
 
       if (error) {
         console.error('Supabase function error:', error);
-        throw new Error(`Summary generation failed: ${error.message || 'Unknown error'}`);
+        throw new Error(`AI service error: ${error.message || 'Failed to connect to AI service'}`);
       }
 
       if (!data || !data.success) {
-        const errorMessage = data?.error || 'Failed to generate summary and quiz';
+        const errorMessage = data?.error || 'AI failed to generate summary and quiz';
         console.error('Function returned error:', errorMessage);
         throw new Error(errorMessage);
       }
@@ -54,11 +60,11 @@ export const useSummaryGeneration = () => {
 
       // Validate response data
       if (!summary || !quiz || !Array.isArray(quiz)) {
-        throw new Error('Invalid response format from AI service');
+        throw new Error('Invalid response from AI service. Please try again.');
       }
 
       if (quiz.length === 0) {
-        throw new Error('No quiz questions were generated');
+        throw new Error('AI could not generate quiz questions from this content. Please ensure your document has substantial readable text.');
       }
 
       console.log('Generated content successfully:', {
@@ -123,8 +129,8 @@ Difficulty: ${summary.difficulty || 'Unknown'}
       }
 
       toast({
-        title: "Success!",
-        description: `Generated detailed summary and ${quiz.length} custom quiz questions for "${title}"`,
+        title: "AI Analysis Complete!",
+        description: `Successfully generated detailed summary and ${quiz.length} custom quiz questions for "${title}"`,
       });
 
       console.log('Summary and quiz generation completed successfully');
@@ -133,20 +139,22 @@ Difficulty: ${summary.difficulty || 'Unknown'}
     } catch (error) {
       console.error('Error in generateSummaryAndQuiz:', error);
       
-      // Mark document as processed to prevent retry loops
-      try {
-        await supabase
-          .from('documents')
-          .update({ processed: true })
-          .eq('id', documentId);
-      } catch (updateError) {
-        console.error('Failed to mark document as processed:', updateError);
-      }
-
+      // Mark document as processed to prevent retry loops, but only if it's a content issue
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       
+      if (errorMessage.includes('content') || errorMessage.includes('short') || errorMessage.includes('empty')) {
+        try {
+          await supabase
+            .from('documents')
+            .update({ processed: true })
+            .eq('id', documentId);
+        } catch (updateError) {
+          console.error('Failed to mark document as processed:', updateError);
+        }
+      }
+      
       toast({
-        title: "Error",
+        title: "AI Generation Failed",
         description: errorMessage,
         variant: "destructive"
       });

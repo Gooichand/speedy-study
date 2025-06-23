@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Target, ArrowLeft, Lightbulb, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
+import { BookOpen, Target, ArrowLeft, Lightbulb, Loader2, RefreshCw, ExternalLink, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -46,6 +46,7 @@ const DocumentViewer = () => {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [autoGenerating, setAutoGenerating] = useState(false);
+  const [processingAttempts, setProcessingAttempts] = useState(0);
 
   useEffect(() => {
     if (id && user) {
@@ -53,25 +54,39 @@ const DocumentViewer = () => {
     }
   }, [id, user]);
 
-  // Auto-generate summary if document is processed but has no summary
+  // Enhanced auto-generation with retry mechanism
   useEffect(() => {
     const autoGenerateSummary = async () => {
-      if (document && document.processed && !document.summary && !autoGenerating && document.content) {
-        console.log('Auto-generating summary for document:', document.title);
+      if (document && document.processed && !document.summary && !autoGenerating && document.content && processingAttempts < 3) {
+        console.log('Auto-generating summary for document:', document.title, 'Attempt:', processingAttempts + 1);
         setAutoGenerating(true);
+        setProcessingAttempts(prev => prev + 1);
+        
         try {
           await generateSummaryAndQuiz(document.id, document.content, document.title, document.file_size);
           await fetchDocumentData();
+          toast({
+            title: "Success!",
+            description: "AI summary and quiz have been generated successfully!",
+          });
         } catch (error) {
           console.error('Auto-generation failed:', error);
+          if (processingAttempts >= 2) {
+            toast({
+              title: "Generation Failed",
+              description: "Unable to generate summary automatically. Please try the manual generation button.",
+              variant: "destructive"
+            });
+          }
         } finally {
           setAutoGenerating(false);
         }
       }
     };
 
-    autoGenerateSummary();
-  }, [document, autoGenerating, generateSummaryAndQuiz]);
+    const timer = setTimeout(autoGenerateSummary, 2000); // Delay to allow document processing
+    return () => clearTimeout(timer);
+  }, [document, autoGenerating, generateSummaryAndQuiz, processingAttempts]);
 
   const fetchDocumentData = async () => {
     try {
@@ -135,6 +150,7 @@ const DocumentViewer = () => {
     if (!document) return;
 
     try {
+      setProcessingAttempts(0); // Reset attempts for manual generation
       await generateSummaryAndQuiz(
         document.id,
         document.content || document.title,
@@ -142,8 +158,17 @@ const DocumentViewer = () => {
         document.file_size
       );
       await fetchDocumentData();
+      toast({
+        title: "Success!",
+        description: "Summary and quiz have been regenerated successfully!",
+      });
     } catch (error) {
       console.error('Error regenerating summary:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate summary and quiz. Please check if your document has enough content.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -183,6 +208,7 @@ const DocumentViewer = () => {
 
   const isGenerating = generatingSummary || autoGenerating;
   const showGenerateButton = document.processed && !document.summary && !isGenerating;
+  const hasContent = document.content && document.content.trim().length > 100;
 
   return (
     <div className="pt-28 pb-20 px-6 min-h-screen bg-slate-900">
@@ -206,10 +232,40 @@ const DocumentViewer = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Processing Status */}
+            {!document.processed && (
+              <Card className="glass-card border-amber-500/50 shadow-2xl bg-amber-900/20 backdrop-blur-xl">
+                <div className="text-center py-8 p-6">
+                  <Loader2 size={32} className="text-amber-400 animate-spin mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-amber-100 mb-2">Processing Document...</h3>
+                  <p className="text-amber-200">
+                    Your document is being processed. This may take a few moments depending on the file size.
+                  </p>
+                </div>
+              </Card>
+            )}
+
+            {/* No Content Warning */}
+            {document.processed && !hasContent && (
+              <Card className="glass-card border-red-500/50 shadow-2xl bg-red-900/20 backdrop-blur-xl">
+                <div className="text-center py-8 p-6">
+                  <FileText size={32} className="text-red-400 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-red-100 mb-2">No Content Detected</h3>
+                  <p className="text-red-200 mb-4">
+                    This document appears to be empty or the content couldn't be extracted. 
+                    Please upload a document with readable text content.
+                  </p>
+                  <p className="text-red-300 text-sm">
+                    Supported formats: PDF, DOCX, TXT with readable text content
+                  </p>
+                </div>
+              </Card>
+            )}
+
             {/* Summary Section */}
             {document.summary ? (
               <SummaryDisplay summary={document.summary} title={document.title} />
-            ) : (
+            ) : document.processed && hasContent ? (
               <Card className="glass-card border-slate-700/50 shadow-2xl bg-slate-800/40 backdrop-blur-xl">
                 <div className="text-center py-12 p-8">
                   <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow-purple">
@@ -220,13 +276,11 @@ const DocumentViewer = () => {
                     )}
                   </div>
                   <h3 className="text-3xl font-bold text-slate-100 mb-4">
-                    {isGenerating ? 'Generating AI Summary...' : 'Ready for AI Analysis'}
+                    {isGenerating ? 'Generating AI Analysis...' : 'Ready for AI Analysis'}
                   </h3>
                   <p className="text-slate-300 mb-8 text-lg leading-relaxed max-w-2xl mx-auto">
-                    {!document.processed 
-                      ? "Your document is being processed. The AI analysis will be available shortly."
-                      : isGenerating
-                      ? "Our advanced AI is analyzing your document content and creating comprehensive summaries with custom quiz questions tailored specifically to your file..."
+                    {isGenerating
+                      ? `Our advanced AI is analyzing your document "${document.title}" and creating comprehensive summaries with custom quiz questions. This process may take 1-2 minutes...`
                       : "Generate an intelligent AI summary with detailed analysis, key insights, and personalized quiz questions based on your document's unique content."
                     }
                   </p>
@@ -239,22 +293,30 @@ const DocumentViewer = () => {
                       Generate AI Summary & Quiz
                     </Button>
                   )}
+                  {isGenerating && (
+                    <div className="mt-6">
+                      <div className="text-sm text-slate-400 mb-2">Processing...</div>
+                      <div className="w-full bg-slate-700 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
-            )}
+            ) : null}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Study Actions Card */}
-            <Card className="glass-card border-slate-700/50 bg-slate-800/40 backdrop-blur-xl shadow-2xl">
+            <Card className="glass-card border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl shadow-2xl">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-slate-100 flex items-center">
                   <Target className="mr-2 text-purple-400" size={20} />
                   Study Actions
                 </h3>
                 <div className="space-y-3">
-                  {quiz ? (
+                  {quiz && quiz.questions?.length > 0 ? (
                     <Link to={`/quiz/${id}`} className="block">
                       <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
                         <Target size={20} className="mr-2" />
@@ -264,23 +326,26 @@ const DocumentViewer = () => {
                   ) : (
                     <Button 
                       onClick={handleRegenerateSummary}
-                      disabled={isGenerating || !document.processed}
+                      disabled={isGenerating || !document.processed || !hasContent}
                       className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
                     >
                       <Target size={20} className="mr-2" />
-                      {isGenerating ? 'Generating Quiz...' : 'Generate Quiz'}
+                      {isGenerating ? 'Generating Quiz...' : !hasContent ? 'No Content Available' : 'Generate Quiz'}
                     </Button>
                   )}
-                  <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+                  <Button 
+                    disabled={!document.summary}
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
+                  >
                     <BookOpen size={20} className="mr-2" />
-                    Study Mode
+                    {document.summary ? 'Study Mode' : 'Summary Required'}
                   </Button>
                 </div>
               </div>
             </Card>
 
             {/* Document Stats Card */}
-            <Card className="glass-card border-slate-700/50 bg-slate-800/40 backdrop-blur-xl shadow-2xl">
+            <Card className="glass-card border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl shadow-2xl">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-slate-100">Document Stats</h3>
                 <div className="space-y-3">
@@ -292,6 +357,12 @@ const DocumentViewer = () => {
                     <span className="text-slate-300">Status:</span>
                     <Badge variant={document.processed ? "default" : "secondary"} className={document.processed ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50" : "bg-amber-500/20 text-amber-300 border-amber-500/50"}>
                       {document.processed ? "Processed" : "Processing"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
+                    <span className="text-slate-300">Content:</span>
+                    <Badge className={hasContent ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50" : "bg-red-500/20 text-red-300 border-red-500/50"}>
+                      {hasContent ? "Available" : "Not Available"}
                     </Badge>
                   </div>
                   {quiz && (
@@ -309,7 +380,7 @@ const DocumentViewer = () => {
             </Card>
 
             {/* Study Tips Card */}
-            <Card className="glass-card border-slate-700/50 bg-slate-800/40 backdrop-blur-xl shadow-2xl">
+            <Card className="glass-card border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl shadow-2xl">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-slate-100 flex items-center">
                   <Lightbulb className="mr-2 text-purple-400" size={20} />
@@ -321,7 +392,7 @@ const DocumentViewer = () => {
                       <span className="text-white text-sm font-bold">1</span>
                     </div>
                     <p className="text-sm text-slate-300">
-                      Start with the detailed summary for comprehensive understanding
+                      Upload documents with clear, readable text for best AI analysis results
                     </p>
                   </div>
                   <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
@@ -329,7 +400,7 @@ const DocumentViewer = () => {
                       <span className="text-white text-sm font-bold">2</span>
                     </div>
                     <p className="text-sm text-slate-300">
-                      Review key points for quick recall and memorization
+                      Review the detailed summary first for comprehensive understanding
                     </p>
                   </div>
                   <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
@@ -337,7 +408,7 @@ const DocumentViewer = () => {
                       <span className="text-white text-sm font-bold">3</span>
                     </div>
                     <p className="text-sm text-slate-300">
-                      Take the quiz to test your understanding of this specific document
+                      Take the quiz to test your understanding and retention
                     </p>
                   </div>
                 </div>
@@ -345,7 +416,7 @@ const DocumentViewer = () => {
             </Card>
 
             {/* Built By Card */}
-            <Card className="glass-card border-slate-700/50 bg-slate-800/40 backdrop-blur-xl shadow-2xl">
+            <Card className="glass-card border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl shadow-2xl">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-slate-100 text-center">Built By</h3>
                 <div className="text-center">
