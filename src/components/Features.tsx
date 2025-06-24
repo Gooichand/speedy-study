@@ -104,13 +104,6 @@ const Features = () => {
             </Card>
           ))}
         </div>
-
-        <div className="mt-16 text-center">
-          <div className="inline-flex items-center space-x-2 bg-purple-500/20 rounded-full px-6 py-3 border border-purple-500/30">
-            <Shield size={20} className="text-purple-400" />
-            <span className="text-purple-300 font-medium">Built by Sony Education Technologies</span>
-          </div>
-        </div>
       </div>
     </section>
   );
